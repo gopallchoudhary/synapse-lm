@@ -9,6 +9,8 @@ import { Toaster } from "~/components/ui/toast";
 import { TRPCProvider } from "~/trpc/client";
 import { createTRPCHttpBatchClientClient } from "~/trpc/create-client";
 
+import { ClerkProvider } from '@clerk/nextjs'
+
 export const GlobalProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [queryClient] = useState(
         () =>
@@ -29,18 +31,20 @@ export const GlobalProviders: React.FC<{ children: React.ReactNode }> = ({ child
     );
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-                <NextThemesProvider
-                    attribute="class"
-                    defaultTheme="light"
-                    enableSystem
-                    disableTransitionOnChange
-                >
-                    {children}
-                    <Toaster />
-                </NextThemesProvider>
-            </TRPCProvider>
-        </QueryClientProvider>
+        <ClerkProvider>
+            <QueryClientProvider client={queryClient}>
+                <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+                    <NextThemesProvider
+                        attribute="class"
+                        defaultTheme="light"
+                        enableSystem
+                        disableTransitionOnChange
+                    >
+                        {children}
+                        <Toaster />
+                    </NextThemesProvider>
+                </TRPCProvider>
+            </QueryClientProvider>
+        </ClerkProvider>
     );
 };

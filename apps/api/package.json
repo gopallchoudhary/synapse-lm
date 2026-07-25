@@ -9,6 +9,7 @@
     "lint": "eslint src/*"
   },
   "dependencies": {
+    "@clerk/express": "^2.1.46",
     "@repo/trpc": "workspace:*",
     "@scalar/express-api-reference": "^0.10.11",
     "@trpc/server": "^11.18.0",
@@ -20,8 +21,8 @@
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
     "@repo/logger": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
     "@swc/core": "^1.15.46",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",

@@ -8,9 +8,10 @@ import {
 	createOpenApiExpressMiddleware,
 } from "trpc-to-openapi";
 import { apiReference } from "@scalar/express-api-reference";
-import { serverRouter, createContext } from "@repo/trpc";
+import { serverRouter} from "@repo/trpc";
 import { env } from "./env";
-
+import { clerkMiddleware } from '@clerk/express'
+import {createContext} from './tRPCContext'
 export const app = express();
 const openApiDocument = generateOpenApiDocument(serverRouter, {
 	title: "Streamyst OpenAPI",
@@ -26,7 +27,7 @@ app.use(
 );
 
 app.use(cookieParser());
-
+app.use(clerkMiddleware())
 app.use(express.json());
 
 app.get("/", (req, res) => {
