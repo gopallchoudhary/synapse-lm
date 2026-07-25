@@ -3,6 +3,11 @@
 	"version": "1.0.0",
 	"private": true,
 	"type": "module",
+	"exports": {
+		".": "./index.ts",
+		"./client": "./client/index.ts",
+		"./server": "./server/index.ts"
+	},
 	"devDependencies": {
 		"@repo/eslint-config": "workspace:*",
 		"@repo/typescript-config": "workspace:*",
@@ -11,6 +16,7 @@
 		"typescript": "^7.0.2"
 	},
 	"dependencies": {
+		"@repo/services": "workspace:*",
 		"@trpc/client": "^11.18.0",
 		"@trpc/server": "^11.18.0",
 		"express": "^5.2.1",

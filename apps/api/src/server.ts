@@ -8,7 +8,7 @@ import {
 	createOpenApiExpressMiddleware,
 } from "trpc-to-openapi";
 import { apiReference } from "@scalar/express-api-reference";
-import { serverRouter} from "@repo/trpc";
+import { serverRouter } from "@repo/trpc/server";
 import { env } from "./env";
 import { clerkMiddleware } from '@clerk/express'
 import {createContext} from './tRPCContext'

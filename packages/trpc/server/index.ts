@@ -1,9 +1,12 @@
+import { testRouter } from "./routes/test/route";
 import { router } from "./trpc";
 
 
 
 
-export const serverRouter = router({})
+export const serverRouter = router({
+    test: testRouter
+})
 
-export { createContext } from './context'
+export type { TRPCContext } from './context'
 export type ServerRouter = typeof serverRouter

@@ -9,7 +9,33 @@ import { Toaster } from "~/components/ui/toast";
 import { TRPCProvider } from "~/trpc/client";
 import { createTRPCHttpBatchClientClient } from "~/trpc/create-client";
 
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProvider, useAuth } from "@clerk/nextjs";
+
+function TRPCProviderWithAuth({
+    children,
+    queryClient,
+}: {
+    children: React.ReactNode;
+    queryClient: QueryClient;
+}) {
+    const { getToken } = useAuth();
+
+    const [trpcClient] = useState(() =>
+        createTRPCClient<ServerRouter>({
+            links: [
+                createTRPCHttpBatchClientClient({
+                    getToken: () => getToken(),
+                }),
+            ],
+        }),
+    );
+
+    return (
+        <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+            {children}
+        </TRPCProvider>
+    );
+}
 
 export const GlobalProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [queryClient] = useState(
@@ -24,16 +50,10 @@ export const GlobalProviders: React.FC<{ children: React.ReactNode }> = ({ child
             }),
     );
 
-    const [trpcClient] = useState(() =>
-        createTRPCClient<ServerRouter>({
-            links: [createTRPCHttpBatchClientClient()],
-        }),
-    );
-
     return (
         <ClerkProvider>
             <QueryClientProvider client={queryClient}>
-                <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+                <TRPCProviderWithAuth queryClient={queryClient}>
                     <NextThemesProvider
                         attribute="class"
                         defaultTheme="light"
@@ -43,7 +63,7 @@ export const GlobalProviders: React.FC<{ children: React.ReactNode }> = ({ child
                         {children}
                         <Toaster />
                     </NextThemesProvider>
-                </TRPCProvider>
+                </TRPCProviderWithAuth>
             </QueryClientProvider>
         </ClerkProvider>
     );
