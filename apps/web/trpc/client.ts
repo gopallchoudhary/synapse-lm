@@ -1,22 +1,6 @@
 import { type ServerRouter } from "@repo/trpc";
-import { createTRPCClient } from "@trpc/client";
+import { createTRPCContext } from "@trpc/tanstack-react-query";
 
-import {
-	createTRPCOptionsProxy,
-	type TRPCOptionsProxy,
-} from "@trpc/tanstack-react-query";
-import { createTRPCHttpBatchClientClient } from "./create-client";
-import { QueryClient } from "@tanstack/react-query";
+export const { TRPCProvider, useTRPC, useTRPCClient } =
+	createTRPCContext<ServerRouter>();
 
-const queryClient = new QueryClient();
-
-const trpcClient = createTRPCClient<ServerRouter>({
-	links: [createTRPCHttpBatchClientClient()],
-});
-
-export const trpc: TRPCOptionsProxy<ServerRouter> =
-	createTRPCOptionsProxy<ServerRouter>({
-		client: trpcClient,
-		queryClient,
-		
-	});

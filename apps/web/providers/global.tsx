@@ -1,41 +1,46 @@
 "use client";
 
+import type { ServerRouter } from "@repo/trpc";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createTRPCClient } from "@trpc/client";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import React, { useState } from "react";
 import { Toaster } from "~/components/ui/toast";
-import { trpc } from "~/trpc/client";
-
+import { TRPCProvider } from "~/trpc/client";
 import { createTRPCHttpBatchClientClient } from "~/trpc/create-client";
 
-const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: {
-            refetchOnMount: true,
-            staleTime: Infinity,
-        },
-    },
-});
-
 export const GlobalProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [queryClient] = useState(
+        () =>
+            new QueryClient({
+                defaultOptions: {
+                    queries: {
+                        refetchOnMount: true,
+                        staleTime: Infinity,
+                    },
+                },
+            }),
+    );
+
     const [trpcClient] = useState(() =>
-        trpc.createClient({
+        createTRPCClient<ServerRouter>({
             links: [createTRPCHttpBatchClientClient()],
         }),
     );
+
     return (
         <QueryClientProvider client={queryClient}>
-            <NextThemesProvider
-                attribute="class"
-                defaultTheme="light"
-                enableSystem
-                disableTransitionOnChange
-            >
-                <trpc.Provider queryClient={queryClient} client={trpcClient}>
+            <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+                <NextThemesProvider
+                    attribute="class"
+                    defaultTheme="light"
+                    enableSystem
+                    disableTransitionOnChange
+                >
                     {children}
                     <Toaster />
-                </trpc.Provider>
-            </NextThemesProvider>
+                </NextThemesProvider>
+            </TRPCProvider>
         </QueryClientProvider>
     );
 };
