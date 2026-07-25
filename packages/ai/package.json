@@ -1,0 +1,20 @@
+{
+    "name": "@repo/ai",
+    "version": "1.0.0",
+    "private": true,
+    "devDependencies": {
+        "@repo/eslint-config": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "^22.15.3",
+        "dotenv-cli": "^11.0.0",
+        "typescript": "^7.0.2"
+    },
+    "dependencies": {
+        "@ai-sdk/openai": "^4.0.20",
+        "@repo/database": "workspace:*",
+        "@repo/logger": "workspace:*",
+        "ai": "^7.0.37",
+        "openai": "^6.49.0",
+        "zod": "^4.4.3"
+    }
+}
