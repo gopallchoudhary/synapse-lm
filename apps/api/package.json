@@ -9,6 +9,7 @@
     "lint": "eslint src/*"
   },
   "dependencies": {
+    "@repo/trpc": "workspace:*",
     "@scalar/express-api-reference": "^0.10.11",
     "@trpc/server": "^11.18.0",
     "cookie-parser": "^1.4.7",
