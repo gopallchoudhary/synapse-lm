@@ -1,4 +1,5 @@
-import { createTRPCClient, type ServerRouter } from "@repo/trpc";
+import { type ServerRouter } from "@repo/trpc";
+import { createTRPCClient } from "@trpc/client";
 
 import {
 	createTRPCOptionsProxy,
@@ -17,4 +18,5 @@ export const trpc: TRPCOptionsProxy<ServerRouter> =
 	createTRPCOptionsProxy<ServerRouter>({
 		client: trpcClient,
 		queryClient,
+		
 	});
