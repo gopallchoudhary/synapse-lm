@@ -4,7 +4,9 @@
     "scripts": {
         "db:generate": "dotenv -- prisma generate",
         "db:migrate": "dotenv -- prisma migrate dev",
-        "db:studio": "dotenv -- prisma studio"
+        "db:studio": "dotenv -- prisma studio",
+        "generate": "prisma generate",
+        "build": "tsc"
     },
     "devDependencies": {
         "@repo/eslint-config": "workspace:*",
