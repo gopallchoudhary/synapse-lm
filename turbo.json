@@ -1,6 +1,11 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "DATABASE_URL",
+    "CLERK_SECRET_KEY",
+    "NEXT_PUBLIC_*"
+  ],
   "tasks": {
     "generate": {
       "outputs": ["generated/prisma/**"],
