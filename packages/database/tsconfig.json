@@ -1,5 +1,10 @@
 {
   "extends": [
     "@repo/typescript-config/node.json"
+  ],
+  "exclude": [
+    "prisma.config.ts",
+    "generated",
+    "node_modules"
   ]
 }

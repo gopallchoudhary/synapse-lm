@@ -1,7 +1,11 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-    DATABASE_URL: z.string().default("postgresql://postgres:postgres@localhost:5432/postgres"),
+    DATABASE_URL: z
+        .preprocess(
+            (val) => (typeof val === "string" && val.trim() === "" ? undefined : val),
+            z.string().default("postgresql://postgres:postgres@localhost:5432/postgres")
+        ),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
 
