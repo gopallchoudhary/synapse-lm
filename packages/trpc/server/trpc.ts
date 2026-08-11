@@ -1,6 +1,6 @@
 import { initTRPC, TRPCError } from '@trpc/server'
 import { OpenApiMeta } from 'trpc-to-openapi'
-import type { TRPCContext } from './context'
+import type { TRPCContext } from './context.js'
 
 
 
