@@ -1,7 +1,7 @@
-import { testSerive } from '../../services/index'
-import { protectedProcedure, router } from '../../trpc'
-import { generatePath } from '../../utils/path-generator'
-import { createTestInputModel, createTestOutputModel } from './model'
+import { testSerive } from '../../services/index.js'
+import { protectedProcedure, router } from '../../trpc.js'
+import { generatePath } from '../../utils/path-generator.js'
+import { createTestInputModel, createTestOutputModel } from './model.js'
 
 const TAGS = ["Test"]
 const getPath = generatePath("/test")

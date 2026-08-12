@@ -1,5 +1,5 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import { getAuth } from "@clerk/express";
+import { getAuth, clerkClient } from "@clerk/express";
 import type { TRPCContext } from "@repo/trpc/server";
 
 export async function createContext({
@@ -9,5 +9,13 @@ export async function createContext({
 
     return {
         userId: userId ?? null,
+        clerk: {
+            users: {
+                getUser: async (userId: string) => {
+                    const user = await clerkClient.users.getUser(userId);
+                    return user;
+                },
+            },
+        },
     };
 }
