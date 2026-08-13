@@ -1,5 +1,5 @@
 import { prisma } from '@repo/database'
-import { TestSchemaInputType, testSchemaInput } from './model'
+import { TestSchemaInputType, testSchemaInput } from './model.js'
 
 class TestService {
     public async createTest(payload: TestSchemaInputType) {

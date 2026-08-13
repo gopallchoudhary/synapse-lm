@@ -12,3 +12,7 @@ export const createTestInputModel = z.object({
 export const createTestOutputModel = z.object({
     id: z.string()
 })
+
+export type check = {
+    id: string
+}

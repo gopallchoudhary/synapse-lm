@@ -12,6 +12,7 @@ import { serverRouter } from "@repo/trpc/server";
 import { env } from "./env";
 import { clerkMiddleware } from '@clerk/express'
 import {createContext} from './tRPCContext'
+import { errorHandler } from "./middleware/error-handler";
 export const app = express();
 const openApiDocument = generateOpenApiDocument(serverRouter, {
 	title: "Streamyst OpenAPI",
@@ -64,5 +65,7 @@ app.use(
 		createContext,
 	}),
 );
+
+app.use(errorHandler);
 
 export default app;

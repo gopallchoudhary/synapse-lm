@@ -1,0 +1,188 @@
+import { prisma } from "@repo/database";
+import { Prisma } from "@repo/database/generated/prisma/client.js";
+import {
+	ListSourcesQuery,
+	listSourcesQuerySchema,
+	sourceSelect,
+	sourceIdParamSchema,
+	SourceIdParamSchemaType,
+	CreateSourceInput,
+	WorkspaceIdParamSchemaType,
+	workspaceIdParamSchema,
+	createSourceSchema,
+	CreateSourceData,
+	SourceRecord,
+} from "./model.js";
+import WorkspaceService from "../workspace/index.js";
+import { NotFoundError } from "../../errors/app-error.js";
+const workspaceService = new WorkspaceService();
+
+class SourceService {
+	//. get all sources
+	public async getSourcesByWorkspaceId(
+		workspaceId: string,
+		userId: string,
+		rawFilters: ListSourcesQuery = {},
+	) {
+		await workspaceService.getWorkspaceByIdAndUserId(workspaceId, userId);
+
+		const filters = listSourcesQuerySchema.parse(rawFilters);
+
+		const where: Prisma.SourceWhereInput = { workspaceId };
+
+		if (filters.type) {
+			where.type = filters.type;
+		}
+
+		if (filters.status) {
+			where.status = filters.status;
+		}
+
+		if (filters.q) {
+			where.OR = [
+				{ title: { contains: filters.q, mode: "insensitive" } },
+				{ content: { contains: filters.q, mode: "insensitive" } },
+			];
+		}
+
+		return await prisma.source.findMany({
+			where,
+			select: sourceSelect,
+			orderBy: {
+				createdAt: "desc",
+			},
+		});
+	}
+
+	//. get source by id
+	public async getSourceById(sourceId: string) {
+		const source = await prisma.source.findUnique({
+			where: {
+				id: sourceId,
+			},
+			select: sourceSelect,
+		});
+
+		if (!source) {
+			throw new NotFoundError("Source not found");
+		}
+
+		return source;
+	}
+
+	//. get source by id and workspace id
+	public async getSourceByIdAndWorkspaceId(
+		userId: string,
+		payload: SourceIdParamSchemaType,
+	) {
+		const { workspaceId, sourceId } =
+			await sourceIdParamSchema.parseAsync(payload);
+
+		await workspaceService.getWorkspaceByIdAndUserId(workspaceId, userId);
+
+		const source = await prisma.source.findFirst({
+			where: {
+				id: sourceId,
+				workspaceId,
+			},
+			select: sourceSelect,
+		});
+
+		if (!source) {
+			throw new NotFoundError("Source not found");
+		}
+
+		return source;
+	}
+
+	//, create source record
+	private async createSourceRecord(data: CreateSourceData) {
+		return prisma.source.create({
+			data: {
+				workspaceId: data.workspaceId,
+				type: data.type,
+				title: data.title,
+				content: data.content ?? null,
+				url: data.url ?? null,
+				status: data.status ?? "PENDING",
+				metadata: data.metadata,
+			},
+			select: sourceSelect,
+		});
+	}
+
+	//, create and process source
+	private async createAndProcessSource(
+		data: Parameters<typeof this.createSourceRecord>[0],
+	) {
+		const source = await this.createSourceRecord(data);
+
+		return source;
+	}
+
+	//, create text or markdown source
+	private async createTextOrMarkdownSource(
+		workspaceId: string,
+		userId: string,
+		input: CreateSourceInput,
+	) {
+		await workspaceService.getWorkspaceByIdAndUserId(workspaceId, userId);
+		return this.createAndProcessSource({
+			workspaceId,
+			type: input.type,
+			title: input.title,
+			content: input.content,
+			status: "PENDING",
+		});
+	}
+
+	//. create source
+	public async createSource(
+		userId: string,
+		workspacePayload: WorkspaceIdParamSchemaType,
+		payload: CreateSourceInput,
+	) {
+		const { workspaceId } = workspaceIdParamSchema.parse(workspacePayload);
+		const input = createSourceSchema.parse(payload);
+
+		await workspaceService.getWorkspaceByIdAndUserId(workspaceId, userId);
+
+		const source = await this.createTextOrMarkdownSource(
+			workspaceId,
+			userId,
+			input,
+		);
+
+		return source;
+	}
+
+	//. delete source
+	public async deleteSource(userId: string, payload: SourceIdParamSchemaType) {
+		const { workspaceId, sourceId } = sourceIdParamSchema.parse(payload);
+		await this.getSourceByIdAndWorkspaceId(userId, payload);
+
+		await prisma.source.delete({
+			where: {
+				id: sourceId,
+			},
+		});
+	}
+
+	//. update source
+	public async updateSource(
+		sourceId: string,
+		data: {
+			content?: string | null;
+			status?: SourceRecord["status"];
+			metadata?: Prisma.InputJsonValue;
+		},
+	) {
+		return prisma.source.update({
+			where: { id: sourceId },
+			data,
+			select: sourceSelect,
+		});
+	}
+}
+
+export default SourceService;

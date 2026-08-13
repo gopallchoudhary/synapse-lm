@@ -1,3 +1,3 @@
+import TestService from "./src/test/index.js";
 
-import TestService from "./test/index";
 export default TestService

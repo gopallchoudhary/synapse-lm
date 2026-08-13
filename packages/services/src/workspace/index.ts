@@ -1,0 +1,123 @@
+import { prisma } from "@repo/database";
+import { NotFoundError } from "../../errors/app-error.js";
+import {
+	createWorkspaceSchemaInput,
+	CreateWorkspaceInputType,
+	updateWorkspaceSchema,
+	UpdateWorkspaceInputType,
+    DeleteWorkspaceInputType,
+    deleteWorkspaceInput,
+} from "./model.js";
+
+class WorkspaceService {
+
+    private async getWorkspaceById(workspaceId: string) {
+        const workspace = await prisma.workspace.findUnique({
+            where: {
+                id: workspaceId,
+            },
+        });
+        if (!workspace) {
+            throw new NotFoundError("Workspace not found");
+        }
+        return workspace;
+    }
+
+	public async getWorkspacesByUserId(userId: string) {
+		const workspaces = await prisma.workspace.findMany({
+			where: {
+				userId,
+			},
+		});
+
+		if (!workspaces) {
+			throw new NotFoundError("Workspace not found");
+		}
+
+		return workspaces;
+	}
+
+	public async getWorkspaceByIdAndUserId(workspaceId: string, userId: string) {
+		const workspace = await prisma.workspace.findUnique({
+			where: {
+				id: workspaceId,
+				userId,
+			},
+		});
+		if (!workspace) {
+			throw new NotFoundError("Workspace not found");
+		}
+		return workspace;
+	}
+
+	public async createWorkspace(
+		userId: string,
+		payload: CreateWorkspaceInputType,
+	) {
+		const { title, description, icon, defaultModel } =
+			await createWorkspaceSchemaInput.parseAsync(payload);
+		const workspace = await prisma.workspace.create({
+			data: {
+				userId,
+				title,
+				description,
+				icon,
+				defaultModel,
+			},
+		});
+		return {
+			id: workspace?.id,
+		};
+	}
+
+	public async updateWorkspace(
+		workspaceId: string,
+		payload: UpdateWorkspaceInputType,
+	) {
+		const { title, description, icon, defaultModel } =
+			await updateWorkspaceSchema.parseAsync(payload);
+		const workspace = await prisma.workspace.update({
+			where: {
+				id: workspaceId,
+			},
+			data: {
+				title,
+				description,
+				icon,
+				defaultModel,
+			},
+		});
+		return {
+			id: workspace?.id,
+		};
+	}
+
+    public async deleteWorkspace(payload: DeleteWorkspaceInputType) {
+        const { workspaceId } = await deleteWorkspaceInput.parseAsync(payload)
+
+        // check before deleting
+        await this.getWorkspaceById(workspaceId)
+
+        const workspace = await prisma.workspace.delete({
+            where: {
+                id: workspaceId
+            }
+        })
+        return {
+            id: workspace?.id
+        }
+    }
+
+    public async deleteAllWorkspaces(userId: string) {
+        const workspaces = await prisma.workspace.deleteMany({
+            where: {
+                userId
+            }
+        })
+        return {
+            count: workspaces?.count
+        }
+    }
+}
+
+export default WorkspaceService;
