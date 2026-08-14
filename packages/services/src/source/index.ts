@@ -12,9 +12,20 @@ import {
 	createSourceSchema,
 	CreateSourceData,
 	SourceRecord,
+	ImportWebsiteInput,
+	importWebsiteSchema,
 } from "./model.js";
 import WorkspaceService from "../workspace/index.js";
-import { NotFoundError } from "../../errors/app-error.js";
+import {
+	AppError,
+	ValidationError,
+	NotFoundError,
+	ConflictError,
+	UnauthorizedError,
+} from "@repo/errors";
+
+import { scrapeWebsite } from "@repo/rag";
+
 const workspaceService = new WorkspaceService();
 
 class SourceService {
@@ -117,6 +128,8 @@ class SourceService {
 	) {
 		const source = await this.createSourceRecord(data);
 
+		// TODO: enqueue source processing
+
 		return source;
 	}
 
@@ -182,6 +195,39 @@ class SourceService {
 			data,
 			select: sourceSelect,
 		});
+	}
+	
+
+	//. import website source
+	public async importWebsiteSource(
+		userId: string,
+		workspacePayload: WorkspaceIdParamSchemaType,
+		payload: ImportWebsiteInput,
+	) {
+		const { workspaceId } = workspaceIdParamSchema.parse(workspacePayload);
+		const { url, title } = importWebsiteSchema.parse(payload);
+
+		await workspaceService.getWorkspaceByIdAndUserId(workspaceId, userId);
+
+		const scraped = await scrapeWebsite(url);
+
+		const source = await this.createAndProcessSource({
+			workspaceId,
+			type: "WEBSITE",
+			title: title || scraped.title || url,
+			content: scraped.markdown,
+			url: scraped.sourceUrl,
+			status: "PENDING",
+			metadata: {
+				importedFrom: scraped.sourceUrl,
+			},
+		});
+
+		if (!source) {
+			throw new ValidationError("Failed to import website source");
+		}
+
+		return source;
 	}
 }
 

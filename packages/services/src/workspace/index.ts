@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { NotFoundError } from "../../errors/app-error.js";
+
 import {
 	createWorkspaceSchemaInput,
 	CreateWorkspaceInputType,
@@ -9,6 +9,7 @@ import {
 	deleteWorkspaceInput,
 } from "./model.js";
 
+import {AppError, ValidationError, NotFoundError, ConflictError, UnauthorizedError} from "@repo/errors"
 class WorkspaceService {
 	private async getWorkspaceById(workspaceId: string) {
 		const workspace = await prisma.workspace.findUnique({

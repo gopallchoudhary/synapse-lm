@@ -1,0 +1,15 @@
+{
+	"name": "@repo/errors",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./index.ts",
+		"./app-error": "./app-error.ts"
+	},
+	"devDependencies": {
+		"@repo/eslint-config": "workspace:*",
+		"@repo/typescript-config": "workspace:*",
+		"typescript": "^7.0.2"
+	}
+}

@@ -5,6 +5,7 @@
  */
 
 import Firecrawl from "@mendable/firecrawl-js";
+import {AppError, ValidationError, NotFoundError, ConflictError, UnauthorizedError} from "@repo/errors"
 
 /**
  * Scrapes a public URL and returns clean markdown suitable for RAG indexing.
@@ -17,7 +18,7 @@ export async function scrapeWebsite(url: string) {
 	const apiKey = process.env.FIRECRAWL_API_KEY;
 
 	if (!apiKey) {
-		throw new Error("Firecrawl is not configured on the server");
+		throw new ValidationError("Firecrawl is not configured on the server");
 	}
 
 	const client = new Firecrawl({ apiKey });
@@ -28,7 +29,7 @@ export async function scrapeWebsite(url: string) {
 	const markdown = result.markdown?.trim();
 
 	if (!markdown) {
-		throw new Error("Could not extract content from this URL");
+		throw new ValidationError("Could not extract content from this URL");
 	}
 
 	return {

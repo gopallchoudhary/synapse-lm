@@ -3,7 +3,13 @@
  */
 
 import { YoutubeTranscript } from "youtube-transcript";
-
+import {
+	AppError,
+	ValidationError,
+	NotFoundError,
+	ConflictError,
+	UnauthorizedError,
+} from "@repo/errors";
 
 /**
  * Fetches caption transcript text for a YouTube video.
@@ -21,7 +27,7 @@ export async function fetchYoutubeTranscript(url: string) {
 		)?.[1] ?? url.match(/youtube\.com\/shorts\/([\w-]{11})/)?.[1];
 
 	if (!videoId) {
-		throw new Error("Enter a valid YouTube URL");
+		throw new ValidationError("Enter a valid YouTube URL");
 	}
 
 	try {
@@ -32,12 +38,12 @@ export async function fetchYoutubeTranscript(url: string) {
 			.trim();
 
 		if (!content) {
-			throw new Error("No transcript found for this video");
+			throw new ValidationError("No transcript found for this video");
 		}
 
 		return { videoId, content };
 	} catch {
-		throw new Error(
+		throw new ValidationError(
 			"Could not fetch transcript. The video may not have captions.",
 		);
 	}

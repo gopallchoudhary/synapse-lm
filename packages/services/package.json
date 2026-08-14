@@ -12,6 +12,8 @@
     },
     "dependencies": {
         "@repo/database": "workspace:*",
+        "@repo/rag": "workspace:*",
+        "@repo/errors": "workspace:*",
         "@repo/logger": "workspace:*",
         "zod": "^4.4.3"
     }
