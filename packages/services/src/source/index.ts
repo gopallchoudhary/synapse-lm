@@ -24,7 +24,8 @@ import {
 	UnauthorizedError,
 } from "@repo/errors";
 
-import { scrapeWebsite } from "@repo/rag";
+import { scrapeWebsite, extractPdfFromBuffer } from "@repo/rag";
+import { uploadPdfToCloudinary } from "@repo/storage";
 
 const workspaceService = new WorkspaceService();
 
@@ -196,7 +197,6 @@ class SourceService {
 			select: sourceSelect,
 		});
 	}
-	
 
 	//. import website source
 	public async importWebsiteSource(
@@ -228,6 +228,46 @@ class SourceService {
 		}
 
 		return source;
+	}
+
+	public async uploadPdfSource(
+		userId: string,
+		workspacePayload: WorkspaceIdParamSchemaType,
+		file: Express.Multer.File,
+		title?: string,
+	) {
+		const { workspaceId } = workspaceIdParamSchema.parse(workspacePayload);
+
+		await workspaceService.getWorkspaceByIdAndUserId(workspaceId, userId);
+
+		const upload = await uploadPdfToCloudinary(file.buffer, file.originalname);
+
+		let content: string | null = null;
+		let pageCount: number | undefined;
+
+		try {
+			const extracted = await extractPdfFromBuffer(file.buffer);
+			content = extracted.text;
+			pageCount = extracted.pageCount;
+		} catch {
+			// Inngest will retry extraction from Cloudinary if upload-time parse fails.
+		}
+
+		const source = await this.createAndProcessSource({
+			workspaceId,
+			type: "PDF",
+			title: title?.trim() || file.originalname.replace(/\.pdf$/i, ""),
+			content,
+			status: "PENDING",
+			metadata: {
+				fileUrl: upload.secureUrl,
+				fileName: upload.originalFilename,
+				fileSize: upload.bytes,
+				publicId: upload.publicId,
+				resourceType: upload.resourceType,
+				pageCount,
+			},
+		});
 	}
 }
 
