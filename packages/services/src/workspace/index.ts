@@ -5,23 +5,22 @@ import {
 	CreateWorkspaceInputType,
 	updateWorkspaceSchema,
 	UpdateWorkspaceInputType,
-    DeleteWorkspaceInputType,
-    deleteWorkspaceInput,
+	DeleteWorkspaceInputType,
+	deleteWorkspaceInput,
 } from "./model.js";
 
 class WorkspaceService {
-
-    private async getWorkspaceById(workspaceId: string) {
-        const workspace = await prisma.workspace.findUnique({
-            where: {
-                id: workspaceId,
-            },
-        });
-        if (!workspace) {
-            throw new NotFoundError("Workspace not found");
-        }
-        return workspace;
-    }
+	private async getWorkspaceById(workspaceId: string) {
+		const workspace = await prisma.workspace.findUnique({
+			where: {
+				id: workspaceId,
+			},
+		});
+		if (!workspace) {
+			throw new NotFoundError("Workspace not found");
+		}
+		return workspace;
+	}
 
 	public async getWorkspacesByUserId(userId: string) {
 		const workspaces = await prisma.workspace.findMany({
@@ -55,7 +54,7 @@ class WorkspaceService {
 		payload: CreateWorkspaceInputType,
 	) {
 		const { title, description, icon, defaultModel } =
-			await createWorkspaceSchemaInput.parseAsync(payload);
+			createWorkspaceSchemaInput.parse(payload);
 		const workspace = await prisma.workspace.create({
 			data: {
 				userId,
@@ -75,7 +74,7 @@ class WorkspaceService {
 		payload: UpdateWorkspaceInputType,
 	) {
 		const { title, description, icon, defaultModel } =
-			await updateWorkspaceSchema.parseAsync(payload);
+			updateWorkspaceSchema.parse(payload);
 		const workspace = await prisma.workspace.update({
 			where: {
 				id: workspaceId,
@@ -92,32 +91,32 @@ class WorkspaceService {
 		};
 	}
 
-    public async deleteWorkspace(payload: DeleteWorkspaceInputType) {
-        const { workspaceId } = await deleteWorkspaceInput.parseAsync(payload)
+	public async deleteWorkspace(payload: DeleteWorkspaceInputType) {
+		const { workspaceId } = deleteWorkspaceInput.parse(payload);
 
-        // check before deleting
-        await this.getWorkspaceById(workspaceId)
+		// check before deleting
+		await this.getWorkspaceById(workspaceId);
 
-        const workspace = await prisma.workspace.delete({
-            where: {
-                id: workspaceId
-            }
-        })
-        return {
-            id: workspace?.id
-        }
-    }
+		const workspace = await prisma.workspace.delete({
+			where: {
+				id: workspaceId,
+			},
+		});
+		return {
+			id: workspace?.id,
+		};
+	}
 
-    public async deleteAllWorkspaces(userId: string) {
-        const workspaces = await prisma.workspace.deleteMany({
-            where: {
-                userId
-            }
-        })
-        return {
-            count: workspaces?.count
-        }
-    }
+	public async deleteAllWorkspaces(userId: string) {
+		const workspaces = await prisma.workspace.deleteMany({
+			where: {
+				userId,
+			},
+		});
+		return {
+			count: workspaces?.count,
+		};
+	}
 }
 
 export default WorkspaceService;

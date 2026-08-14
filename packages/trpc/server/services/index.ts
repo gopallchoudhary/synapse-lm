@@ -1,3 +1,6 @@
-import TestService from '@repo/services'
+import {TestService, SourceService, WorkspaceService} from '@repo/services'
+
 
 export const testService = new TestService()
+export const sourceService = new SourceService()
+export const workspaceService = new WorkspaceService()
