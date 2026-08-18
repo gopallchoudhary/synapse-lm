@@ -14,6 +14,8 @@
         "@repo/database": "workspace:*",
         "@repo/rag": "workspace:*",
         "@repo/storage": "workspace:*",
+        "@repo/vector-store": "workspace:*",
+        "@repo/ai": "workspace:*",
         "@repo/errors": "workspace:*",
         "@repo/logger": "workspace:*",
         "zod": "^4.4.3"

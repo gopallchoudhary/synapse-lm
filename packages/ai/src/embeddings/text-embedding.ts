@@ -1,5 +1,5 @@
 import { OpenAI } from "openai";
-import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "../types/ai-config";
+import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "../types/ai-config.js";
 
 const client = new OpenAI({
 	apiKey: process.env.OPENROUTER_API_KEY,

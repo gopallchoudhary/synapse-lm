@@ -1,10 +1,11 @@
 {
-    "name": "@repo/ai",
+    "name": "@repo/memory",
     "version": "1.0.0",
     "private": true,
     "type": "module",
     "exports": {
-        ".": "./src/index.ts"
+        ".": "./src/index.ts",
+        "./client": "./src/client.ts"
     },
     "devDependencies": {
         "@repo/eslint-config": "workspace:*",
@@ -14,11 +15,9 @@
         "typescript": "^7.0.2"
     },
     "dependencies": {
-        "@ai-sdk/openai": "^4.0.20",
-        "@repo/database": "workspace:*",
+        "@repo/errors": "workspace:*",
         "@repo/logger": "workspace:*",
-        "ai": "^7.0.37",
-        "openai": "^6.49.0",
+        "mem0ai": "^2.4.6",
         "zod": "^4.4.3"
     }
 }

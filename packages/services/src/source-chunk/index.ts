@@ -37,3 +37,5 @@ class SourceChunkService {
 		});
 	}
 }
+
+export default SourceChunkService
