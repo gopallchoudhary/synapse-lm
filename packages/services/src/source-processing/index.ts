@@ -6,6 +6,7 @@ import { embedTexts } from "@repo/ai";
 import SourceService from "../source/index.js";
 import SourceChunkService from "../source-chunk/index.js";
 import { SourceChunkRecord, SourceMetadata, SourceRecord } from "./model.js";
+import { inngest } from "@repo/jobs-client";
 
 const sourceService = new SourceService();
 const sourceChunkService = new SourceChunkService();
@@ -204,4 +205,17 @@ class SourceProcessingService {
 			count: chunks.length,
 		};
 	}
+
+	//. enqueue source processing
+	public async enqueueSourceProcessing(input: {
+		sourceId: string;
+		workspaceId: string;
+	}) {
+		await inngest.send({
+			name: "source/created",
+			data: input,
+		});
+	}
 }
+
+export default SourceProcessingService;

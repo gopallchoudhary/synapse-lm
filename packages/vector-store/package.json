@@ -1,22 +1,22 @@
 {
-    "name": "@repo/vector-store",
-    "version": "1.0.0",
-    "private": true,
-    "type": "module",
-    "exports": {
-        ".": "./src/index.ts"
-    },
-    "devDependencies": {
-        "@repo/eslint-config": "workspace:*",
-        "@repo/typescript-config": "workspace:*",
-        "@types/node": "^22.15.3",
-        "dotenv-cli": "^11.0.0",
-        "typescript": "^7.0.2"
-    },
-    "dependencies": {
-        "@pinecone-database/pinecone": "^6.1.4",
-        "@repo/errors": "workspace:*",
-        "@repo/logger": "workspace:*",
-        "zod": "^4.4.3"
-    }
+	"name": "@repo/vector-store",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"devDependencies": {
+		"@repo/eslint-config": "workspace:*",
+		"@repo/typescript-config": "workspace:*",
+		"@types/node": "^22.15.3",
+		"dotenv-cli": "^11.0.0",
+		"typescript": "^7.0.2"
+	},
+	"dependencies": {
+		"@pinecone-database/pinecone": "^8.1.10",
+		"@repo/errors": "workspace:*",
+		"@repo/logger": "workspace:*",
+		"zod": "^4.4.3"
+	}
 }

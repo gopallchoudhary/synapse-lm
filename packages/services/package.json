@@ -11,6 +11,7 @@
         "typescript": "^7.0.2"
     },
     "dependencies": {
+        "@repo/jobs-client": "workspace:*",
         "@repo/database": "workspace:*",
         "@repo/rag": "workspace:*",
         "@repo/storage": "workspace:*",
