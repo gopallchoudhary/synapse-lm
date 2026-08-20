@@ -5,7 +5,7 @@ import {
 } from "@pinecone-database/pinecone";
 import { EMBEDDING_DIMENSIONS } from "./config.js";
 
-const indexName = process.env.PINECONE_INDEX ?? "chaibook";
+const indexName = process.env.PINECONE_INDEX ?? "synapse-lm";
 
 let pineconeClient: Pinecone | null = null;
 let indexReady = false;

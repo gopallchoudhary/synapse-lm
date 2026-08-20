@@ -1,4 +1,3 @@
-import { prisma } from "@repo/database";
 import { Prisma } from "@repo/database/generated/prisma/client.js";
 import { extractPdfFromCloudinary, chunkPages, chunkText } from "@repo/rag";
 import type { VectorMetadata, PineconeRecord } from "@repo/vector-store";
