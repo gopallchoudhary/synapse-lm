@@ -1,5 +1,6 @@
 
 import { createOpenAI } from "@ai-sdk/openai";
+import type { LanguageModel } from "ai";
 
 export const DEFAULT_CHAT_MODEL = "openai/gpt-4o-mini";
 
@@ -8,8 +9,6 @@ export const openrouterClient = createOpenAI({
     baseURL: process.env.OPENROUTER_BASE_URL,
 });
 
-export function getChatModel(modelId: string | null) {
+export function getChatModel(modelId: string | null): LanguageModel {
     return openrouterClient(modelId ?? DEFAULT_CHAT_MODEL);
-
 }
-

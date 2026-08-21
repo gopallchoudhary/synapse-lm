@@ -34,6 +34,9 @@ export async function retrieveWorkspaceContext(
 	query: string,
 ): Promise<RetrievedChunk[]> {
 	const [embedding] = await embedTexts([query]);
+	if (!embedding) {
+		return [];
+	}
 	const matches = await queryWorkspaceVectors(
 		workspaceId,
 		embedding,
