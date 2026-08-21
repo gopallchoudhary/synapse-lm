@@ -17,8 +17,8 @@
         "@ai-sdk/openai": "^4.0.20",
         "@repo/database": "workspace:*",
         "@repo/logger": "workspace:*",
-        "ai": "^7.0.37",
-        "openai": "^6.49.0",
+        "ai": "^7.0.42",
+        "openai": "^7.1.0",
         "zod": "^4.4.3"
     }
 }

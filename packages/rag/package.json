@@ -16,6 +16,8 @@
         "typescript": "^7.0.2"
     },
     "dependencies": {
+        "@repo/ai": "workspace:*",
+        "@repo/vector-store": "workspace:*",
         "@mendable/firecrawl-js": "^4.32.1",
         "@repo/errors": "workspace:*",
         "@repo/logger": "workspace:*",
