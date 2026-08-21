@@ -655,6 +655,37 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
+  packages/web-search:
+    dependencies:
+      '@repo/errors':
+        specifier: workspace:*
+        version: link:../errors
+      '@repo/logger':
+        specifier: workspace:*
+        version: link:../logger
+      '@tavily/core':
+        specifier: 0.7.6
+        version: 0.7.6
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.15.3
+      dotenv-cli:
+        specifier: ^11.0.0
+        version: 11.0.0
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+
 packages:
 
   '@ai-sdk/gateway@4.0.59':
@@ -2972,6 +3003,9 @@ packages:
     resolution: {integrity: sha512-yRg2pfOCxIs4ZJW3XYYHU/WgtD04FHSnfHlpRT7h7pR77hwkdRG4wxbKe4aq6P0RvXUTBSQpQeadS1SUYUe+KA==}
     peerDependencies:
       react: ^18 || ^19
+
+  '@tavily/core@0.7.6':
+    resolution: {integrity: sha512-swNz2RaietpfXWrA+y/ERSQ9H3bq0mNu0hcp2OcVKqTrUUcdygEXIXr67o6qQ1XSjgBbB3FNQtAkrPPB8bYkaA==}
 
   '@traceloop/ai-semantic-conventions@0.20.0':
     resolution: {integrity: sha512-bvivhZU6U8TW4TKktYnjdTi+7GE4WxI8epaGjawalSKDunmxaA+4UVFQ+4tSCBvp2Scby+gnYNaTZSrtABfOlQ==}
@@ -9306,6 +9340,15 @@ snapshots:
     dependencies:
       '@tanstack/query-core': 5.101.4
       react: 19.2.0
+
+  '@tavily/core@0.7.6':
+    dependencies:
+      axios: 1.18.0
+      https-proxy-agent: 7.0.6
+      js-tiktoken: 1.0.21
+    transitivePeerDependencies:
+      - debug
+      - supports-color
 
   '@traceloop/ai-semantic-conventions@0.20.0':
     dependencies:
