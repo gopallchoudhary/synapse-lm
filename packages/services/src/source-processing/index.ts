@@ -7,6 +7,7 @@ import SourceService from "../source/index.js";
 import SourceChunkService from "../source-chunk/index.js";
 import { SourceChunkRecord, SourceMetadata, SourceRecord } from "./model.js";
 import { inngest } from "@repo/jobs-client";
+import { prisma } from "@repo/database";
 
 const sourceService = new SourceService();
 const sourceChunkService = new SourceChunkService();
@@ -214,6 +215,15 @@ class SourceProcessingService {
 		await inngest.send({
 			name: "source/created",
 			data: input,
+		});
+	}
+
+	//. delete source record
+	public async deleteSourceRecord(sourceId: string) {
+		await prisma.source.delete({
+			where: {
+				id: sourceId,
+			},
 		});
 	}
 }

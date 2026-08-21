@@ -100,12 +100,12 @@ export type CreateSourceData = {
 	metadata?: Prisma.InputJsonValue;
 };
 
-export type CreateSourceInput = z.infer<typeof createSourceSchema>;
-export type ListSourcesQuery = z.infer<typeof listSourcesQuerySchema>;
-export type ImportWebsiteInput = z.infer<typeof importWebsiteSchema>;
-export type ImportYoutubeInput = z.infer<typeof importYoutubeSchema>;
-export type BulkDeleteSourcesInput = z.infer<typeof bulkDeleteSourcesSchema>;
-export type ReprocessSourcesInput = z.infer<typeof reprocessSourcesSchema>;
-export type ImportWebSearchInput = z.infer<typeof importWebSearchSchema>;
+export type CreateSourceInputType = z.infer<typeof createSourceSchema>;
+export type ListSourcesQueryType = z.infer<typeof listSourcesQuerySchema>;
+export type ImportWebsiteInputType = z.infer<typeof importWebsiteSchema>;
+export type ImportYoutubeInputType = z.infer<typeof importYoutubeSchema>;
+export type BulkDeleteSourcesInputType = z.infer<typeof bulkDeleteSourcesSchema>;
+export type ReprocessSourcesInputType = z.infer<typeof reprocessSourcesSchema>;
+export type ImportWebSearchInputType = z.infer<typeof importWebSearchSchema>;
 export type SourceIdParamSchemaType = z.infer<typeof sourceIdParamSchema>;
 export type WorkspaceIdParamSchemaType = z.infer<typeof workspaceIdParamSchema>;

@@ -32,3 +32,24 @@ export const deleteWorkspaceInput = z.object({
 //, delete workspace input type
 export type DeleteWorkspaceInputType = z.infer<typeof deleteWorkspaceInput>;
 
+
+export const workspaceSelect = {
+    id: true,
+    title: true,
+    description: true,
+    icon: true,
+    defaultModel: true,
+    createdAt: true,
+    updatedAt: true,
+} as const;
+
+export type WorkspaceRecord = {
+    id: string;
+    title: string;
+    description: string | null;
+    icon: string | null;
+    defaultModel: string;
+    createdAt: Date;
+    updatedAt: Date;
+};
+

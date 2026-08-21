@@ -1,4 +1,5 @@
 import { prisma } from "@repo/database";
+import { deleteWorkspaceVectors } from "@repo/vector-store";
 
 import {
 	createWorkspaceSchemaInput,
@@ -7,9 +8,18 @@ import {
 	UpdateWorkspaceInputType,
 	DeleteWorkspaceInputType,
 	deleteWorkspaceInput,
+	workspaceSelect,
+	WorkspaceRecord,
 } from "./model.js";
 
-import {AppError, ValidationError, NotFoundError, ConflictError, UnauthorizedError} from "@repo/errors"
+import {
+	AppError,
+	ValidationError,
+	NotFoundError,
+	ConflictError,
+	UnauthorizedError,
+} from "@repo/errors";
+import { workspaceIdParamSchema, WorkspaceIdParamSchemaType } from "../source/model.js";
 class WorkspaceService {
 	private async getWorkspaceById(workspaceId: string) {
 		const workspace = await prisma.workspace.findUnique({
@@ -37,12 +47,16 @@ class WorkspaceService {
 		return workspaces;
 	}
 
-	public async getWorkspaceByIdAndUserId(workspaceId: string, userId: string) {
-		const workspace = await prisma.workspace.findUnique({
+	public async getWorkspaceByIdAndUserId(
+		workspaceId: string,
+		userId: string,
+	): Promise<WorkspaceRecord> {
+		const workspace = await prisma.workspace.findFirst({
 			where: {
 				id: workspaceId,
 				userId,
 			},
+			select: workspaceSelect,
 		});
 		if (!workspace) {
 			throw new NotFoundError("Workspace not found");
@@ -64,60 +78,54 @@ class WorkspaceService {
 				icon,
 				defaultModel,
 			},
+			select: workspaceSelect,
 		});
-		return {
-			id: workspace?.id,
-		};
+		return workspace;
 	}
 
-	public async updateWorkspace(
-		workspaceId: string,
+	public async updateWorkspaceById(
+		workspacePayload: WorkspaceIdParamSchemaType,
 		payload: UpdateWorkspaceInputType,
+		userId: string,
 	) {
-		const { title, description, icon, defaultModel } =
-			updateWorkspaceSchema.parse(payload);
+		const { workspaceId } = workspaceIdParamSchema.parse(workspacePayload);
+		const data = updateWorkspaceSchema.parse(payload);
+
+		await this.getWorkspaceByIdAndUserId(workspaceId, userId);
+
 		const workspace = await prisma.workspace.update({
 			where: {
 				id: workspaceId,
 			},
-			data: {
-				title,
-				description,
-				icon,
-				defaultModel,
-			},
+			data,
+			select: workspaceSelect,
 		});
-		return {
-			id: workspace?.id,
-		};
+		return workspace;
 	}
 
-	public async deleteWorkspace(payload: DeleteWorkspaceInputType) {
+	public async deleteWorkspaceById(
+		payload: DeleteWorkspaceInputType,
+		userId: string,
+	) {
 		const { workspaceId } = deleteWorkspaceInput.parse(payload);
 
 		// check before deleting
-		await this.getWorkspaceById(workspaceId);
+		await this.getWorkspaceByIdAndUserId(workspaceId, userId);
 
-		const workspace = await prisma.workspace.delete({
+		try {
+			await deleteWorkspaceVectors(workspaceId);
+		} catch (error) {
+			console.error("Failed to delete Pinecone namespace:", error);
+		}
+
+		await prisma.workspace.delete({
 			where: {
 				id: workspaceId,
 			},
 		});
-		return {
-			id: workspace?.id,
-		};
 	}
 
-	public async deleteAllWorkspaces(userId: string) {
-		const workspaces = await prisma.workspace.deleteMany({
-			where: {
-				userId,
-			},
-		});
-		return {
-			count: workspaces?.count,
-		};
-	}
+	
 }
 
 export default WorkspaceService;
