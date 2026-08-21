@@ -17,6 +17,7 @@ import {
 	ImportYoutubeInputType,
 	importYoutubeSchema,
 	ReprocessSourcesInputType,
+	reprocessSourcesSchema,
 } from "./model.js";
 import WorkspaceService from "../workspace/index.js";
 import SourceProcessingService from "../source-processing/index.js";
@@ -394,6 +395,38 @@ class SourceService {
 		await this.getSourceByIdAndWorkspaceId(userId, workspaceId, sourceId);
 		await sourceProcessingService.removeSourceFromIndex(workspaceId, sourceId);
 		await sourceProcessingService.deleteSourceRecord(sourceId);
+	}
+
+	//. reprocess source
+	public async reprocessSource(
+		userId: string,
+		payload: SourceIdParamSchemaType,
+	) {
+		const { workspaceId, sourceId } = sourceIdParamSchema.parse(payload);
+
+		await this.reprocessSourceForWorkspace(userId, workspaceId, sourceId);
+
+		return {
+			reprocessed: true,
+		};
+	}
+
+	//. reprocess sources
+	public async reprocessSources(
+		userId: string,
+		workspacePayload: WorkspaceIdParamSchemaType,
+		inputPayload: ReprocessSourcesInputType,
+	) {
+		const { workspaceId } = workspaceIdParamSchema.parse(workspacePayload);
+		const input = reprocessSourcesSchema.parse(inputPayload);
+
+		const result = await this.reprocessSourcesForWorkspace(
+			userId,
+			workspaceId,
+			input,
+		);
+
+		return result;
 	}
 }
 
