@@ -16,6 +16,7 @@
 		"@repo/ai": "workspace:*",
 		"@repo/rag": "workspace:*",
 		"@repo/memory": "workspace:*",
+		"@repo/web-search": "workspace:*",
 		"@repo/errors": "workspace:*",
 		"@scalar/express-api-reference": "^0.10.11",
 		"@trpc/server": "^11.18.0",

@@ -95,12 +95,6 @@ class ChatService {
 		await conversationService.deleteConversation(conversationId);
 	}
 
-	public async streamChat(userId: string, payload: StreamChatInputType) {
-		const { workspaceId, conversationId, messages, model, webSearch } =
-			streamChatInputSchema.parse(payload);
-
-        
-	}
 }
 
 export default ChatService;

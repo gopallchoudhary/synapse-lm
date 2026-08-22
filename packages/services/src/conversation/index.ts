@@ -1,5 +1,6 @@
 import { prisma } from "@repo/database";
 import { conversationSelect, ConversationRecord } from "./model.js";
+import { inngest } from "@repo/jobs-client";
 
 class ConversationService {
 	public async getConversationsByWorkspaceId(workspaceId: string) {
@@ -88,6 +89,16 @@ class ConversationService {
 			where: {
 				id: conversationId,
 			},
+		});
+	}
+
+	public async enqueueConversationSummarize(input: {
+		conversationId: string;
+		userId: string;
+	}) {
+		await inngest.send({
+			name: "conversation/summarize",
+			data: input,
 		});
 	}
 }

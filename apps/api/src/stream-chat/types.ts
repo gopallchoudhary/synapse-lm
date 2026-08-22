@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const CHAT_MODELS = ["gpt-4o-mini", "gpt-4o"] as const;
 export const CHAT_MODEL = "gpt-4o-mini";
+export const RECENT_MESSAGE_WINDOW = 12;
+export const CONVERSATION_SUMMARY_INTERVAL = 8;
 
 export const workspaceIdParamSchema = z.object({
 	workspaceId: z.string().trim().min(1),
