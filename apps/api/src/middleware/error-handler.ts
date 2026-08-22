@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import multer from "multer";
 import { flattenError, ZodError } from "zod";
-import { AppError } from "@repo/services/errors/app-error";
+import { AppError } from "@repo/errors";
 
 export function errorHandler(
     error: unknown,
