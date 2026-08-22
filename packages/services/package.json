@@ -15,6 +15,7 @@
         "@repo/database": "workspace:*",
         "@repo/rag": "workspace:*",
         "@repo/storage": "workspace:*",
+        "@repo/memory": "workspace:*",
         "@repo/vector-store": "workspace:*",
         "@repo/ai": "workspace:*",
         "@repo/errors": "workspace:*",

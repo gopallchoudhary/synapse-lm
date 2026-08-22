@@ -546,6 +546,9 @@ importers:
       '@repo/logger':
         specifier: workspace:*
         version: link:../logger
+      '@repo/memory':
+        specifier: workspace:*
+        version: link:../memory
       '@repo/rag':
         specifier: workspace:*
         version: link:../rag
