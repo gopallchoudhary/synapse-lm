@@ -316,7 +316,7 @@ class SourceService {
 	public async uploadPdfSource(
 		userId: string,
 		workspacePayload: WorkspaceIdParamSchemaType,
-		file: Express.Multer.File,
+		file: { buffer: Buffer; originalname: string },
 		title?: string,
 	) {
 		const { workspaceId } = workspaceIdParamSchema.parse(workspacePayload);
@@ -336,7 +336,7 @@ class SourceService {
 			// Inngest will retry extraction from Cloudinary if upload-time parse fails.
 		}
 
-		const source = await this.createAndProcessSource({
+		return await this.createAndProcessSource({
 			workspaceId,
 			type: "PDF",
 			title: title?.trim() || file.originalname.replace(/\.pdf$/i, ""),

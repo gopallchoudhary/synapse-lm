@@ -18,7 +18,7 @@ import { serve } from 'inngest/express'
 import { functions } from '@repo/jobs'
 export const app = express();
 const openApiDocument = generateOpenApiDocument(serverRouter, {
-	title: "Streamyst OpenAPI",
+	title: "Synapse LM OpenAPI",
 	version: "1.0.0",
 	baseUrl: env.BASE_URL.concat("/api"),
 });

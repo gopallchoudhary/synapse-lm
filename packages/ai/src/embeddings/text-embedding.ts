@@ -8,8 +8,8 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
 		return [];
 	}
 
-	if (!process.env.OPENAI_API_KEY) {
-		throw new Error("OPENAI_API_KEY is not configured");
+	if (!process.env.OPENROUTER_API_KEY) {
+		throw new Error("OPENROUTER_API_KEY is not configured");
 	}
 
 	if (!client) {
