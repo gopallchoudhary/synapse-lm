@@ -37,7 +37,10 @@ import {
 import { uploadPdfToCloudinary } from "@repo/storage";
 
 const workspaceService = new WorkspaceService();
-const sourceProcessingService = new SourceProcessingService();
+let _sourceProcessingService: SourceProcessingService | null = null;
+function getSourceProcessingService() {
+	return (_sourceProcessingService ??= new SourceProcessingService());
+}
 
 class SourceService {
 	//. get all sources
@@ -138,7 +141,7 @@ class SourceService {
 		const source = await this.createSourceRecord(data);
 
 		// TODO: enqueue source processing
-		await sourceProcessingService.enqueueSourceProcessing({
+		await getSourceProcessingService().enqueueSourceProcessing({
 			sourceId: source.id,
 			workspaceId: source.workspaceId,
 		});
@@ -265,7 +268,7 @@ class SourceService {
 			sourceId,
 		);
 
-		await sourceProcessingService.removeSourceFromIndex(workspaceId, sourceId);
+		await getSourceProcessingService().removeSourceFromIndex(workspaceId, sourceId);
 
 		const metadata =
 			source.metadata &&
@@ -281,7 +284,7 @@ class SourceService {
 			metadata: metadata as Prisma.InputJsonValue,
 		});
 
-		await sourceProcessingService.enqueueSourceProcessing({
+		await getSourceProcessingService().enqueueSourceProcessing({
 			sourceId,
 			workspaceId,
 		});
@@ -393,8 +396,8 @@ class SourceService {
 	public async deleteSource(userId: string, payload: SourceIdParamSchemaType) {
 		const { workspaceId, sourceId } = sourceIdParamSchema.parse(payload);
 		await this.getSourceByIdAndWorkspaceId(userId, workspaceId, sourceId);
-		await sourceProcessingService.removeSourceFromIndex(workspaceId, sourceId);
-		await sourceProcessingService.deleteSourceRecord(sourceId);
+		await getSourceProcessingService().removeSourceFromIndex(workspaceId, sourceId);
+		await getSourceProcessingService().deleteSourceRecord(sourceId);
 	}
 
 	//. reprocess source

@@ -5,7 +5,7 @@
         "db:generate": "dotenv -- prisma generate",
         "db:migrate": "dotenv -- prisma migrate dev",
         "db:studio": "dotenv -- prisma studio",
-        "generate": "prisma generate",
+        "generate": "prisma generate && tsc generated/prisma/client.ts generated/prisma/browser.ts generated/prisma/internal/class.ts generated/prisma/internal/prismaNamespace.ts --ignoreConfig --module commonjs --target es2022 --outDir generated/prisma --rootDir generated/prisma --esModuleInterop --skipLibCheck --declaration false",
         "build": "tsc"
     },
     "devDependencies": {

@@ -9,8 +9,14 @@ import { SourceChunkRecord, SourceMetadata, SourceRecord } from "./model.js";
 import { inngest } from "@repo/jobs-client";
 import { prisma } from "@repo/database";
 
-const sourceService = new SourceService();
-const sourceChunkService = new SourceChunkService();
+let _sourceService: SourceService | null = null;
+let _sourceChunkService: SourceChunkService | null = null;
+function getSourceService() {
+	return (_sourceService ??= new SourceService());
+}
+function getSourceChunkService() {
+	return (_sourceChunkService ??= new SourceChunkService());
+}
 
 class SourceProcessingService {
 	public async extractSourceText(source: SourceRecord) {
@@ -51,7 +57,7 @@ class SourceProcessingService {
 	}
 
 	public async markSourceProcessing(sourceId: string) {
-		return sourceService.updateSource(sourceId, { status: "PROCESSING" });
+		return getSourceService().updateSource(sourceId, { status: "PROCESSING" });
 	}
 
 	public async markSourceFailed(
@@ -69,7 +75,7 @@ class SourceProcessingService {
 				? (existingMetadata as SourceMetadata)
 				: {};
 
-		return sourceService.updateSource(sourceId, {
+		return getSourceService().updateSource(sourceId, {
 			status: "FAILED",
 			metadata: {
 				...metadata,
@@ -79,7 +85,7 @@ class SourceProcessingService {
 	}
 
 	public async extractSourceContent(sourceId: string) {
-		const source = await sourceService.getSourceById(sourceId);
+		const source = await getSourceService().getSourceById(sourceId);
 		if (!source) {
 			throw new Error("Source not found");
 		}
@@ -93,7 +99,7 @@ class SourceProcessingService {
 				? (source.metadata as SourceMetadata)
 				: {};
 
-		await sourceService.updateSource(sourceId, {
+		await getSourceService().updateSource(sourceId, {
 			content: extracted.text,
 			metadata: {
 				...metadata,
@@ -115,7 +121,7 @@ class SourceProcessingService {
 		text: string,
 		pages?: string[],
 	) {
-		await sourceChunkService.deleteChunksBySourceId(sourceId);
+		await getSourceChunkService().deleteChunksBySourceId(sourceId);
 
 		const chunks = pages?.length ? chunkPages(pages) : chunkText(text);
 
@@ -123,7 +129,7 @@ class SourceProcessingService {
 			throw new Error("No chunks were generated from source content");
 		}
 
-		return sourceChunkService.createSourceChunks(
+		return getSourceChunkService().createSourceChunks(
 			chunks.map((chunk) => ({
 				sourceId,
 				index: chunk.index,
@@ -183,7 +189,7 @@ class SourceProcessingService {
 				? (source.metadata as SourceMetadata)
 				: {};
 
-		return sourceService.updateSource(source.id, {
+		return getSourceService().updateSource(source.id, {
 			status: "READY",
 			metadata: {
 				...metadata,
@@ -196,11 +202,11 @@ class SourceProcessingService {
 
 	public async removeSourceFromIndex(workspaceId: string, sourceId: string) {
 		await deleteSourceVectors(workspaceId, sourceId);
-		await sourceChunkService.deleteChunksBySourceId(sourceId);
+		await getSourceChunkService().deleteChunksBySourceId(sourceId);
 	}
 
 	public async listChunksForSource(sourceId: string) {
-		const chunks = await sourceChunkService.getChunksBySourceId(sourceId);
+		const chunks = await getSourceChunkService().getChunksBySourceId(sourceId);
 		return {
 			chunks,
 			count: chunks.length,
