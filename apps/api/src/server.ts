@@ -11,8 +11,11 @@ import { apiReference } from "@scalar/express-api-reference";
 import { serverRouter } from "@repo/trpc/server";
 import { env } from "./env";
 import { clerkMiddleware } from '@clerk/express'
-import {createContext} from './tRPCContext'
+import { createContext } from './tRPCContext'
 import { errorHandler } from "./middleware/error-handler";
+import { inngest } from '@repo/jobs-client'
+import { serve } from 'inngest/express'
+import { functions } from '@repo/jobs'
 export const app = express();
 const openApiDocument = generateOpenApiDocument(serverRouter, {
 	title: "Streamyst OpenAPI",
@@ -30,6 +33,7 @@ app.use(
 app.use(cookieParser());
 app.use(clerkMiddleware())
 app.use(express.json());
+app.use("/api/inngest", serve({ client: inngest, functions }))
 
 app.get("/", (req, res) => {
 	return res.json({ message: "Synapse LLM is up and running" });
