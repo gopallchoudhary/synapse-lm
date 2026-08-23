@@ -64,7 +64,7 @@ class WorkspaceService {
 		return workspace;
 	}
 
-	public async createWorkspace(
+	public async createWorkspaceByUserId(
 		userId: string,
 		payload: CreateWorkspaceInputType,
 	) {
