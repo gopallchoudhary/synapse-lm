@@ -5,6 +5,7 @@ import SourceProcessingService from "./src/source-processing/index.js";
 import SourceChunkService from "./src/source-chunk/index.js"
 import ConversationService from "./src/conversation/index.js";
 import MessageService from "./src/message/index.js";
+import ArtifactService from "./src/artifact/index.js";
 
-export { TestService, SourceService, WorkspaceService, SourceProcessingService, SourceChunkService, ConversationService, MessageService };
+export { TestService, SourceService, WorkspaceService, SourceProcessingService, SourceChunkService, ConversationService, MessageService, ArtifactService };
 

@@ -1,17 +1,19 @@
-import {inngest} from "@repo/jobs-client";
+import { inngest } from "@repo/jobs-client";
 import {
 	SourceProcessingService,
 	SourceService,
-	WorkspaceService,
+	ArtifactService,
 	SourceChunkService,
+	ConversationService,
 } from "@repo/services";
 
 const sourceProcessingService = new SourceProcessingService();
 const sourceService = new SourceService();
 const sourceChunkService = new SourceChunkService();
-const workspaceService = new WorkspaceService();
+const artifactService = new ArtifactService();
+const conversationService = new ConversationService();
 
-//. Process Source 
+//. Process Source
 export const processSource = inngest.createFunction(
 	{
 		id: "process-source",
@@ -22,7 +24,7 @@ export const processSource = inngest.createFunction(
 	async ({ event, step }) => {
 		const { sourceId } = event.data;
 
-        //, step-1: mark source processing
+		//, step-1: mark source processing
 		await step.run("mark-processing", () =>
 			sourceProcessingService.markSourceProcessing(sourceId),
 		);
@@ -32,12 +34,12 @@ export const processSource = inngest.createFunction(
 			// -> chunk source content
 			// -> embed and index source content
 
-            //, step-2 extreact source content 
+			//, step-2 extreact source content
 			const extracted = await step.run("extract-content", () =>
 				sourceProcessingService.extractSourceContent(sourceId),
 			);
 
-            //, step-3 chunk source content 
+			//, step-3 chunk source content
 			await step.run("chunk-content", () =>
 				sourceProcessingService.chunkSourceContent(
 					sourceId,
@@ -46,7 +48,7 @@ export const processSource = inngest.createFunction(
 				),
 			);
 
-            //, step-4 embed and index 
+			//, step-4 embed and index
 			const result = await step.run("embed-and-index", async () => {
 				const source = await sourceService.getSourceById(sourceId);
 				if (!source) {
@@ -80,3 +82,36 @@ export const processSource = inngest.createFunction(
 		}
 	},
 );
+
+//. generate artifact
+
+export const generateArtifact = inngest.createFunction(
+	{
+		id: "generate-artifact",
+		retries: 2,
+		triggers: [{ event: "artifact/generate" }],
+	},
+	async ({ event, step }) => {
+		const { artifactId } = event.data;
+
+		await step.run("generate", () =>
+			artifactService.processArtifactById(artifactId),
+		);
+	},
+);
+
+export const summarizeConversation = inngest.createFunction(
+	{
+		id: "summarize-conversation",
+		retries: 2,
+		triggers: [{ event: "conversation/summarize" }],
+	},
+	async ({ event, step }) => {
+		const { conversationId, userId } = event.data;
+		await step.run("summarize", async () =>
+			conversationService.summarizeConversationById(conversationId, userId),
+		);
+	},
+);
+
+export const functions = [processSource, generateArtifact];

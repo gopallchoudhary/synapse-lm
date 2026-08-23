@@ -6,6 +6,7 @@ import { ArtifactRecord, ArtifactType, flashcardsSchema, MAX_CONTEXT_CHARS, mind
 import SourceService from '../source/index.js'
 import { ValidationError } from '@repo/errors'
 import { generateStructuredContent, generateTextContent } from '@repo/ai'
+import { inngest } from '@repo/jobs-client'
 
 
 const sourceService = new SourceService()
@@ -25,7 +26,7 @@ class ArtifactGenerationService {
  *
  *
  */
-    public async gatherSourceContext(workspaceId: string, userId: string, sourceIds: string[]) {
+    public async gatherSourceContext(workspaceId: string, userId: string, sourceIds?: string[]) {
         const sources = await sourceService.getSourcesByWorkspaceId(
             workspaceId,
             userId,
@@ -137,9 +138,20 @@ class ArtifactGenerationService {
             }
         }
     }
+
+
+    public async enqueueArtifactGeneration(input: {
+        artifactId: string;
+        workspaceId: string;
+    }) { 
+        await inngest.send({
+            name: "artifact/generate",
+            data: input,
+        })
+    }
 }
 
-
+export default ArtifactGenerationService;
 
 
 
