@@ -1,5 +1,5 @@
 import { httpLink, httpBatchStreamLink } from "@repo/trpc";
-import { env } from "~/env.js";
+import { env } from "~/env";
 
 interface CreateTRPCHttpBatchClientClientOpts {
 	enableStreaming?: boolean;

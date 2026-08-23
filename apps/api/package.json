@@ -6,7 +6,7 @@
 		"start": "node dist/index.js",
 		"dev": "dotenv -- tsx watch ./src/index.ts",
 		"build": "tsup",
-		"lint": "eslint src/*"
+		"lint": "eslint . --max-warnings 0"
 	},
 	"dependencies": {
 		"@clerk/express": "^2.1.46",
@@ -43,6 +43,7 @@
 		"@types/multer": "^2.2.0",
 		"@types/node": "^22.15.3",
 		"dotenv-cli": "^11.0.0",
+		"eslint": "^9.39.1",
 		"tsup": "^8.5.1",
 		"tsx": "^4.23.1",
 		"typescript": "^7.0.2"

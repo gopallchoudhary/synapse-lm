@@ -134,6 +134,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
+        // eslint-disable-next-line react/prop-types -- react-day-picker infers these props
         Root: ({ className, rootRef, ...props }) => {
           return (
             <div
@@ -144,6 +145,7 @@ function Calendar({
             />
           )
         },
+        // eslint-disable-next-line react/prop-types -- react-day-picker infers these props
         Chevron: ({ className, orientation, ...props }) => {
           if (orientation === "left") {
             return (
