@@ -8,6 +8,8 @@ import {
     CreateArtifactByWorkspaceIdInputType,
     CreateArtifactData,
     CreateArtifactForWorkspaceInputType,
+    deleteArtifactByIdInput,
+    DeleteArtifactByIdInputType,
     getArtifactByIdAndWorkspaceIdInput,
     GetArtifactByIdAndWorkspaceIdInputType,
     listArtifactsByWorkspaceIdInput,
@@ -198,6 +200,19 @@ class ArtifactService {
         });
 
         return artifact;
+    }
+
+    public async deleteArtifactById(payload: DeleteArtifactByIdInputType) {
+        const { userId, artifactId, workspaceId } = deleteArtifactByIdInput.parse(payload);
+
+        await this.getArtifactByIdAndWorkspaceId({ userId, workspaceId, artifactId });
+
+        await prisma.learningArtifact.delete({
+            where: {
+                id: artifactId,
+            },
+        });
+
     }
 }
 

@@ -64,6 +64,12 @@ export type CreateArtifactData = {
     metadata?: Prisma.InputJsonValue;
 };
 
+export const deleteArtifactByIdInput = z.object({
+    userId: z.string().trim().min(1),
+    workspaceId: z.string().trim().min(1),
+    artifactId: z.string().trim().min(1),
+});
+
 
 
 
@@ -71,3 +77,4 @@ export type CreateArtifactForWorkspaceInputType = z.infer<typeof createArtifactF
 export type ListArtifactsByWorkspaceIdInputType = z.infer<typeof listArtifactsByWorkspaceIdInput>;
 export type GetArtifactByIdAndWorkspaceIdInputType = z.infer<typeof getArtifactByIdAndWorkspaceIdInput>;
 export type CreateArtifactByWorkspaceIdInputType = z.infer<typeof createArtifactByWorkspaceIdInput>;
+export type DeleteArtifactByIdInputType = z.infer<typeof deleteArtifactByIdInput>;
