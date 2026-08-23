@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { Prisma } from "@repo/database/generated/prisma/client.js";
+import type { Prisma } from "@repo/database/generated/prisma/client.js";
 import {
 	ListSourcesQueryType,
 	listSourcesQuerySchema,
@@ -269,8 +269,8 @@ class SourceService {
 
 		const metadata =
 			source.metadata &&
-			typeof source.metadata === "object" &&
-			!Array.isArray(source.metadata)
+				typeof source.metadata === "object" &&
+				!Array.isArray(source.metadata)
 				? { ...(source.metadata as Record<string, unknown>) }
 				: {};
 

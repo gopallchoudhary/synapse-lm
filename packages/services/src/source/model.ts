@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Prisma } from "@repo/database/generated/prisma/client.js"
+import type { Prisma } from "@repo/database/generated/prisma/client.js"
 
 export const sourceTypeSchema = z.enum([
 	"PDF",
