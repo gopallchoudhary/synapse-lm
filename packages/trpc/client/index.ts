@@ -1,6 +1,6 @@
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 
-import { type ServerRouter } from "../server/index.js";
+import { type ServerRouter } from "../server/index";
 
 export type RouterOutputs = inferRouterOutputs<ServerRouter>;
 export type RouterInputs = inferRouterInputs<ServerRouter>;

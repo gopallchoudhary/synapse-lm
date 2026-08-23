@@ -1,2 +1,2 @@
-export * from "./client/index.js";
-export type { ServerRouter, TRPCContext } from "./server/index.js";
+export * from "./client/index";
+export type { ServerRouter, TRPCContext } from "./server/index";
