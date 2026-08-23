@@ -16,6 +16,7 @@ import { errorHandler } from "./middleware/error-handler";
 import { inngest } from '@repo/jobs-client'
 import { serve } from 'inngest/express'
 import { functions } from '@repo/jobs'
+import webhookRouter from "./clerk-webhook/route";
 export const app = express();
 const openApiDocument = generateOpenApiDocument(serverRouter, {
 	title: "Synapse LM OpenAPI",
@@ -30,6 +31,7 @@ app.use(
 	}),
 );
 
+app.use("/api/webhooks", webhookRouter)
 app.use(cookieParser());
 app.use(clerkMiddleware())
 app.use(express.json());
