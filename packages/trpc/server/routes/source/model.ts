@@ -30,20 +30,12 @@ export const listSourcesInputModel = workspaceIdSourceParamModel.extend({
 	status: sourceStatusModel.optional(),
 });
 
-export const createSourceInputModel = z.discriminatedUnion("type", [
-	z.object({
-		workspaceId: z.string().trim().min(1),
-		type: z.literal("TEXT"),
-		title: z.string().trim().min(1, "Title is required").max(200),
-		content: z.string().trim().min(1, "Content is required"),
-	}),
-	z.object({
-		workspaceId: z.string().trim().min(1),
-		type: z.literal("MARKDOWN"),
-		title: z.string().trim().min(1, "Title is required").max(200),
-		content: z.string().trim().min(1, "Content is required"),
-	}),
-]);
+export const createSourceInputModel = z.object({
+	workspaceId: z.string().trim().min(1),
+	type: z.enum(["TEXT", "MARKDOWN"]),
+	title: z.string().trim().min(1, "Title is required").max(200),
+	content: z.string().trim().min(1, "Content is required"),
+});
 
 export const importWebsiteInputModel = workspaceIdSourceParamModel.extend({
 	url: z.string().trim().url("Enter a valid URL"),
