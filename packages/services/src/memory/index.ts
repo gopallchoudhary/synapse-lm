@@ -4,6 +4,7 @@ import {
 	listUserMemories,
 	updateUserMemory,
 } from "@repo/memory";
+import { NotFoundError } from "@repo/errors";
 import {
 	createMemoryByUserIdInput,
 	CreateMemoryByUserIdInputType,
@@ -16,8 +17,8 @@ import {
 } from "./model.js";
 
 class MemoryService {
-	public async listMemoriesByUserId(payload: ListMemoriesByUserIdInputType) {
-		const { userId } = listMemoriesByUserIdInput.parse(payload);
+	public async listMemoriesByUserId(userId: string, payload: ListMemoriesByUserIdInputType = {}) {
+		listMemoriesByUserIdInput.parse(payload);
 		return await listUserMemories(userId);
 	}
 
@@ -41,18 +42,26 @@ class MemoryService {
 
 	//, update memory for user
 	private async updateMemoryForUser(
-		_userId: string,
+		userId: string,
 		memoryId: string,
 		input: { memory: string },
 	) {
+		await this.assertMemoryOwnership(userId, memoryId);
 		return updateUserMemory(memoryId, input);
 	}
 
+	private async assertMemoryOwnership(userId: string, memoryId: string) {
+		const memories = await listUserMemories(userId);
+		if (!memories.some((memory) => memory.id === memoryId)) {
+			throw new NotFoundError("Memory not found");
+		}
+	}
+
 	public async updateMemoryByIdAndUserId(
+		userId: string,
 		payload: UpdateMemoryByIdAndUserIdInputType,
 	) {
-		const { userId, memoryId, memory } =
-			updateMemoryByIdAndUserIdInput.parse(payload);
+		const { memoryId, memory } = updateMemoryByIdAndUserIdInput.parse(payload);
 		const updatedMemory = await this.updateMemoryForUser(userId, memoryId, {
 			memory,
 		});
@@ -60,8 +69,12 @@ class MemoryService {
 		return updatedMemory;
 	}
 
-	public async deleteMemoryById(payload: DeleteMemoryByIdInputType) {
+	public async deleteMemoryById(
+		userId: string,
+		payload: DeleteMemoryByIdInputType,
+	) {
 		const { memoryId } = deleteMemoryByIdInput.parse(payload);
+		await this.assertMemoryOwnership(userId, memoryId);
 		await deleteUserMemory(memoryId);
 	}
 }

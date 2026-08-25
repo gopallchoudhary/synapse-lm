@@ -12,4 +12,22 @@ export type SourceCreatedEvent = {
 	};
 };
 
-export type InngestEvents = SourceCreatedEvent;
+export type ArtifactGenerateEvent = {
+	name: "artifact/generate";
+	data: {
+		artifactId: string;
+		workspaceId: string;
+	};
+};
+
+export type ConversationSummarizeEvent = {
+	name: "conversation/summarize";
+	data: {
+		conversationId: string;
+	};
+};
+
+export type InngestEvents =
+	| SourceCreatedEvent
+	| ArtifactGenerateEvent
+	| ConversationSummarizeEvent;

@@ -25,12 +25,10 @@ export const artifactTypes = [
 ] as const;
 
 export const listArtifactsByWorkspaceIdInput = z.object({
-    userId: z.string().trim().min(1),
     workspaceId: z.string().trim().min(1),
 });
 
 export const getArtifactByIdAndWorkspaceIdInput = z.object({
-    userId: z.string().trim().min(1),
     workspaceId: z.string().trim().min(1),
     artifactId: z.string().trim().min(1, "Artifact id is required"),
 });
@@ -65,7 +63,6 @@ export type CreateArtifactData = {
 };
 
 export const deleteArtifactByIdInput = z.object({
-    userId: z.string().trim().min(1),
     workspaceId: z.string().trim().min(1),
     artifactId: z.string().trim().min(1),
 });

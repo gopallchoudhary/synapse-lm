@@ -22,7 +22,14 @@ export const processSource = inngest.createFunction(
 	},
 
 	async ({ event, step }) => {
-		const { sourceId } = event.data;
+		const { sourceId, workspaceId } = event.data;
+
+		const source = await step.run("validate-source", () =>
+			sourceService.getSourceById(sourceId),
+		);
+		if (source.workspaceId !== workspaceId) {
+			throw new Error("Source does not belong to the event workspace");
+		}
 
 		//, step-1: mark source processing
 		await step.run("mark-processing", () =>
@@ -107,9 +114,9 @@ export const summarizeConversation = inngest.createFunction(
 		triggers: [{ event: "conversation/summarize" }],
 	},
 	async ({ event, step }) => {
-		const { conversationId, userId } = event.data;
+		const { conversationId } = event.data;
 		await step.run("summarize", async () =>
-			conversationService.summarizeConversationById(conversationId, userId),
+			conversationService.summarizeConversationById(conversationId),
 		);
 	},
 );

@@ -1,15 +1,12 @@
 import { z } from "zod";
 
-export const listMemoriesByUserIdInput = z.object({
-    userId: z.string().trim().min(1),
-});
+export const listMemoriesByUserIdInput = z.object({});
 
 export const createMemoryByUserIdInput = z.object({
     memory: z.string().trim().min(1).max(2000),
 });
 
 export const updateMemoryByIdAndUserIdInput = z.object({
-    userId: z.string().trim().min(1),
     memoryId: z.string().trim().min(1),
     memory: z.string().trim().min(1).max(2000),
 });

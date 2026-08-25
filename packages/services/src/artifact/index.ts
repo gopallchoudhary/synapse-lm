@@ -23,10 +23,10 @@ const artifactGenerationService = new ArtifactGenarationService();
 
 class ArtifactService {
     public async listArtifactsByWorkspaceId(
+        userId: string,
         payload: ListArtifactsByWorkspaceIdInputType,
     ) {
-        const { userId, workspaceId } =
-            listArtifactsByWorkspaceIdInput.parse(payload);
+        const { workspaceId } = listArtifactsByWorkspaceIdInput.parse(payload);
 
         await workspaceService.getWorkspaceByIdAndUserId(workspaceId, userId);
 
@@ -42,9 +42,10 @@ class ArtifactService {
     }
 
     public async getArtifactByIdAndWorkspaceId(
+        userId: string,
         payload: GetArtifactByIdAndWorkspaceIdInputType,
     ) {
-        const { userId, workspaceId, artifactId } =
+        const { workspaceId, artifactId } =
             getArtifactByIdAndWorkspaceIdInput.parse(payload);
         await workspaceService.getWorkspaceByIdAndUserId(workspaceId, userId);
 
@@ -69,6 +70,19 @@ class ArtifactService {
             where: { id: artifactId },
             select: artifactSelect,
         });
+    }
+
+    private async getArtifactOwnerClerkId(workspaceId: string) {
+        const workspace = await prisma.workspace.findUnique({
+            where: { id: workspaceId },
+            select: { user: { select: { clerkId: true } } },
+        });
+
+        if (!workspace) {
+            throw new NotFoundError("Workspace not found");
+        }
+
+        return workspace.user.clerkId;
     }
 
     //, upate artifact record
@@ -100,9 +114,12 @@ class ArtifactService {
         });
 
         try {
+            const ownerClerkId = await this.getArtifactOwnerClerkId(
+                artifact.workspaceId,
+            );
             const context = await artifactGenerationService.gatherSourceContext(
                 artifact.workspaceId,
-                artifact.workspaceId,
+                ownerClerkId,
                 artifact.sourceIds,
             );
 
@@ -202,10 +219,16 @@ class ArtifactService {
         return artifact;
     }
 
-    public async deleteArtifactById(payload: DeleteArtifactByIdInputType) {
-        const { userId, artifactId, workspaceId } = deleteArtifactByIdInput.parse(payload);
+    public async deleteArtifactById(
+        userId: string,
+        payload: DeleteArtifactByIdInputType,
+    ) {
+        const { artifactId, workspaceId } = deleteArtifactByIdInput.parse(payload);
 
-        await this.getArtifactByIdAndWorkspaceId({ userId, workspaceId, artifactId });
+        await this.getArtifactByIdAndWorkspaceId(userId, {
+            workspaceId,
+            artifactId,
+        });
 
         await prisma.learningArtifact.delete({
             where: {

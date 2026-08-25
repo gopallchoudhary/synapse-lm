@@ -41,10 +41,10 @@ class ChatService {
 	}
 
 	public async listConversationsByWorkspaceId(
+		userId: string,
 		payload: ListConversationsByWorkspaceIdInputType,
 	) {
-		const { userId, workspaceId } =
-			listConversationsByWorkspaceIdInput.parse(payload);
+		const { workspaceId } = listConversationsByWorkspaceIdInput.parse(payload);
 		await workspaceService.getWorkspaceByIdAndUserId(workspaceId, userId);
 		return conversationService.getConversationsByWorkspaceId(workspaceId);
 	}
@@ -60,9 +60,10 @@ class ChatService {
 	}
 
 	public async listConversationMessagesByConversationIdAndWorkspaceId(
+		userId: string,
 		payload: ListConversationMessagesByConversationIdAndWorkspaceIdType,
 	) {
-		const { userId, workspaceId, conversationId } =
+		const { workspaceId, conversationId } =
 			listConversationMessagesByConversationIdAndWorkspaceId.parse(payload);
 
 		const messages =
@@ -76,9 +77,10 @@ class ChatService {
 	}
 
 	public async deleteConversationByIdAndWorkspaceId(
+		userId: string,
 		payload: DeleteConversationByIdAndWorkspaceIdInputType,
 	) {
-		const { userId, workspaceId, conversationId } =
+		const { workspaceId, conversationId } =
 			deleteConversationByIdAndWorkspaceIdInput.parse(payload);
 
 		await workspaceService.getWorkspaceByIdAndUserId(workspaceId, userId);

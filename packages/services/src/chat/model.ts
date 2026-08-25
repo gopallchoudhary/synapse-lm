@@ -24,7 +24,6 @@ export const createConversationSchema = z.object({
 });
 
 export const listConversationsByWorkspaceIdInput = z.object({
-	userId: z.string().trim().min(1),
 	workspaceId: z.string().trim().min(1),
 });
 

@@ -186,7 +186,6 @@ export async function streamWorkspaceChat(
 			if (messageCount % CONVERSATION_SUMMARY_INTERVAL === 0) {
 				await conversationService.enqueueConversationSummarize({
 					conversationId: conversation.id,
-					userId,
 				});
 			}
 

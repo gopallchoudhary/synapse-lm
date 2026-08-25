@@ -99,7 +99,6 @@ class ConversationService {
 
 	public async enqueueConversationSummarize(input: {
 		conversationId: string;
-		userId: string;
 	}) {
 		await inngest.send({
 			name: "conversation/summarize",
@@ -110,12 +109,20 @@ class ConversationService {
 
 	public async summarizeConversationById(
 		conversationId: string,
-		userId: string,
 	) {
 		const conversation = await this.getConversationById(conversationId);
 		if (!conversation) {
 			throw new Error("Conversation not found");
 		}
+
+		const owner = await prisma.conversation.findUnique({
+			where: { id: conversationId },
+			select: { workspace: { select: { user: { select: { clerkId: true } } } } },
+		});
+		if (!owner) {
+			throw new Error("Conversation owner not found");
+		}
+		const userId = owner.workspace.user.clerkId;
 
 		const messages = await messageService.findMessagesByConversationId(
 			conversationId,
