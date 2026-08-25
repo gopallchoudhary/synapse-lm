@@ -8,11 +8,12 @@
     4. On the workspace setting users can edit the title, description, icon, default model and can delete the workspace
 
 ## UI
-    Honesty I'm not good in UI so you have to take care of it and i have given some refernece you can see it in ('./ui-reference')
+    - Honesty I'm not good in UI so you have to take care of it and i have given some refernece you can see it  in ('./ui-reference')
+    - use /frontend-design skill to build the UI.
 
 ## Tech Stack & tools
     NextJs -> apps/web
-        clerk + tanstack with trpc + zustand + shadcnUI
+        clerk + tanstack with trpc + zustand + shadcnUI + framer motion
         @ai-sdk/react, ai and streamdown for the chat streaming
     Express -> apps/api
         clerk + clerk webhook, (using clerk created protected procedure for trpc)

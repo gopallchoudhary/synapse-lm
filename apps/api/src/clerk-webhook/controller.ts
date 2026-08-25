@@ -14,7 +14,10 @@ interface ClerkUserEventData {
 }
 
 export const clerkWebhook = async (req: Request, res: Response) => {
-	const secret = process.env.CLERK_WEBHOOK_SECRET!;
+	const secret = process.env.CLERK_WEBHOOK_SECRET;
+	if (!secret) {
+		return res.status(500).json({ message: "Webhook secret is not configured" });
+	}
 
 	const wh = new Webhook(secret);
 	let event: ClerkUserEventData;
