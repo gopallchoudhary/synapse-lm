@@ -13,14 +13,26 @@ import {
 } from "./model.js";
 
 import {
-	AppError,
-	ValidationError,
 	NotFoundError,
-	ConflictError,
 	UnauthorizedError,
 } from "@repo/errors";
 import { workspaceIdParamSchema, WorkspaceIdParamSchemaType } from "../source/model.js";
 class WorkspaceService {
+	private async getDatabaseUserId(clerkUserId: string) {
+		const user = await prisma.user.findUnique({
+			where: { clerkId: clerkUserId },
+			select: { id: true },
+		});
+
+		if (!user) {
+			throw new UnauthorizedError(
+				"User profile is not synchronized. Verify the Clerk webhook and try again.",
+			);
+		}
+
+		return user.id;
+	}
+
 	private async getWorkspaceById(workspaceId: string) {
 		const workspace = await prisma.workspace.findUnique({
 			where: {
@@ -34,9 +46,11 @@ class WorkspaceService {
 	}
 
 	public async getWorkspacesByUserId(userId: string) {
+		const databaseUserId = await this.getDatabaseUserId(userId);
+
 		return prisma.workspace.findMany({
 			where: {
-				userId,
+				userId: databaseUserId,
 			},
 			select: workspaceSelect,
 			orderBy: {
@@ -49,10 +63,12 @@ class WorkspaceService {
 		workspaceId: string,
 		userId: string,
 	): Promise<WorkspaceRecord> {
+		const databaseUserId = await this.getDatabaseUserId(userId);
+
 		const workspace = await prisma.workspace.findFirst({
 			where: {
 				id: workspaceId,
-				userId,
+				userId: databaseUserId,
 			},
 			select: workspaceSelect,
 		});
@@ -68,9 +84,11 @@ class WorkspaceService {
 	) {
 		const { title, description, icon, defaultModel } =
 			createWorkspaceSchemaInput.parse(payload);
+		const databaseUserId = await this.getDatabaseUserId(userId);
+
 		const workspace = await prisma.workspace.create({
 			data: {
-				userId,
+				userId: databaseUserId,
 				title,
 				description,
 				icon,
