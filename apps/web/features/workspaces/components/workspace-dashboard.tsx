@@ -21,14 +21,21 @@ import {
   useWorkspaces,
 } from "~/features/workspaces/hooks/use-workspaces";
 
-type WorkspaceModel = "gpt-4o-mini" | "gpt-4o";
-
 type WorkspaceForm = {
   title: string;
   description: string;
   icon: string;
-  defaultModel: WorkspaceModel;
 };
+
+const iconOptions = [
+  { value: "🧠", label: "Study" },
+  { value: "💻", label: "Coding" },
+  { value: "📗", label: "Research" },
+  { value: "📝", label: "Notes" },
+  { value: "🔬", label: "Science" },
+  { value: "🚀", label: "Projects" },
+  { value: "🎨", label: "Creative" },
+] as const;
 
 const palettes = [
   "from-sky-500/20 via-cyan-500/10 to-transparent",
@@ -40,8 +47,7 @@ function emptyWorkspaceForm(): WorkspaceForm {
   return {
     title: "",
     description: "",
-    icon: "S",
-    defaultModel: "gpt-4o-mini",
+    icon: iconOptions[0].value,
   };
 }
 
@@ -64,8 +70,7 @@ function CreateWorkspaceDialog() {
       {
         title: form.title,
         description: form.description || undefined,
-        icon: form.icon || undefined,
-        defaultModel: form.defaultModel,
+        icon: form.icon,
       },
       {
         onSuccess: () => {
@@ -121,34 +126,32 @@ function CreateWorkspaceDialog() {
               }
             />
           </label>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="grid gap-2 text-sm font-medium">
-              Icon
-              <Input
-                maxLength={8}
-                placeholder="S"
-                value={form.icon}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, icon: event.target.value }))
-                }
-              />
-            </label>
-            <label className="grid gap-2 text-sm font-medium">
-              Default model
-              <select
-                className="h-8 w-full rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                value={form.defaultModel}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    defaultModel: event.target.value as WorkspaceModel,
-                  }))
-                }
-              >
-                <option value="gpt-4o-mini">GPT-4o mini</option>
-                <option value="gpt-4o">GPT-4o</option>
-              </select>
-            </label>
+          <div className="grid gap-2 text-sm font-medium">
+            Icon
+            <div
+              aria-label="Choose a notebook icon"
+              className="flex gap-2 overflow-x-auto pb-1"
+              role="radiogroup"
+            >
+              {iconOptions.map((option) => {
+                const selected = form.icon === option.value;
+                return (
+                  <button
+                    aria-checked={selected}
+                    aria-label={option.label}
+                    className={`grid size-11 shrink-0 place-items-center rounded-xl border text-xl transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring ${selected ? "border-foreground bg-foreground/10 ring-2 ring-foreground/20" : "border-border bg-background hover:bg-muted"}`}
+                    key={option.value}
+                    onClick={() =>
+                      setForm((current) => ({ ...current, icon: option.value }))
+                    }
+                    role="radio"
+                    type="button"
+                  >
+                    {option.value}
+                  </button>
+                );
+              })}
+            </div>
           </div>
           {createWorkspace.error && (
             <p className="text-sm text-destructive" role="alert">
