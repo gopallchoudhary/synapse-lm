@@ -34,17 +34,15 @@ class WorkspaceService {
 	}
 
 	public async getWorkspacesByUserId(userId: string) {
-		const workspaces = await prisma.workspace.findMany({
+		return prisma.workspace.findMany({
 			where: {
 				userId,
 			},
+			select: workspaceSelect,
+			orderBy: {
+				updatedAt: "desc",
+			},
 		});
-
-		if (!workspaces) {
-			throw new NotFoundError("Workspace not found");
-		}
-
-		return workspaces;
 	}
 
 	public async getWorkspaceByIdAndUserId(

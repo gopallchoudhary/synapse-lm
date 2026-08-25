@@ -8,4 +8,15 @@ import MessageService from "./src/message/index.js";
 import ArtifactService from "./src/artifact/index.js";
 
 export { TestService, SourceService, WorkspaceService, SourceProcessingService, SourceChunkService, ConversationService, MessageService, ArtifactService };
+export {
+    CHAT_MODELS,
+    createWorkspaceSchemaInput,
+    updateWorkspaceSchema,
+    workspaceSelect,
+} from "./src/workspace/model.js";
+export type {
+    CreateWorkspaceInputType,
+    UpdateWorkspaceInputType,
+    WorkspaceRecord,
+} from "./src/workspace/model.js";
 
