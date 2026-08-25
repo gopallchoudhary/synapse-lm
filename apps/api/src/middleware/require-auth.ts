@@ -1,12 +1,8 @@
 import { getAuth } from "@clerk/express";
 import type { Request, Response, NextFunction } from "express";
 
-interface ExtendedRequest extends Request {
-	userId: string;
-}
-
 export default function requireAuth(
-	req: ExtendedRequest,
+	req: Request,
 	res: Response,
 	next: NextFunction,
 ) {
