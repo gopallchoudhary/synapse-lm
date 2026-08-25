@@ -18,6 +18,7 @@ import { serve } from 'inngest/express'
 import { functions } from '@repo/jobs'
 import webhookRouter from "./clerk-webhook/route";
 import { chatRoutes } from "./stream-chat/route";
+import { sourceRoutes } from "./sources/route";
 export const app = express();
 const openApiDocument = generateOpenApiDocument(serverRouter, {
 	title: "Synapse LM OpenAPI",
@@ -66,6 +67,7 @@ app.use(
 );
 
 app.use('/workspace/:workspaceId/chat', chatRoutes)
+app.use('/workspace/:workspaceId/sources', sourceRoutes)
 
 app.use(
 	"/trpc",

@@ -3,8 +3,6 @@
 import { UserButton } from "@clerk/nextjs";
 import {
   ArrowLeft,
-  BookOpen,
-  FileText,
   LayoutPanelTop,
   MessageSquare,
   Settings2,
@@ -29,6 +27,7 @@ import {
   useUpdateWorkspace,
   useWorkspace,
 } from "~/features/workspaces/hooks/use-workspaces";
+import { SourceManager } from "~/features/sources/components/source-manager";
 
 type WorkspaceModel = "gpt-4o-mini" | "gpt-4o";
 
@@ -230,26 +229,11 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
 
       <div className="mx-auto w-full max-w-[1600px] p-3 sm:p-5">
         <div className="grid gap-3 lg:grid-cols-[minmax(220px,0.72fr)_minmax(0,1.5fr)_minmax(240px,0.8fr)]">
-          <section className="min-h-[320px] rounded-3xl border border-border bg-card p-5 sm:min-h-[500px]">
-            <div className="flex items-center justify-between gap-3 border-b border-border pb-4">
-              <div className="flex items-center gap-2">
-                <FileText className="size-4 text-sky-500" />
-                <h2 className="font-semibold">Sources</h2>
-              </div>
-              <span className="text-xs text-muted-foreground">0 added</span>
-            </div>
-            <div className="grid min-h-60 place-items-center py-10 text-center">
-              <div>
-                <BookOpen className="mx-auto size-8 text-muted-foreground" />
-                <p className="mt-3 text-sm font-medium">Bring your sources here</p>
-                <p className="mt-1 max-w-xs text-xs leading-5 text-muted-foreground">
-                  PDFs, websites, videos, and notes will appear in this panel.
-                </p>
-              </div>
-            </div>
+          <section className="flex h-[320px] flex-col rounded-3xl border border-border bg-card p-5 sm:h-[500px]">
+            <SourceManager workspaceId={workspaceId} />
           </section>
 
-          <section className="min-h-[420px] rounded-3xl border border-border bg-card p-5 sm:min-h-[500px]">
+          <section className="flex h-[420px] flex-col rounded-3xl border border-border bg-card p-5 sm:h-[500px]">
             <div className="flex items-center gap-2 border-b border-border pb-4">
               <MessageSquare className="size-4 text-violet-500" />
               <h2 className="font-semibold">Chat</h2>
@@ -265,7 +249,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
             </div>
           </section>
 
-          <section className="min-h-[320px] rounded-3xl border border-border bg-card p-5 sm:min-h-[500px]">
+          <section className="flex h-[320px] flex-col rounded-3xl border border-border bg-card p-5 sm:h-[500px]">
             <div className="flex items-center gap-2 border-b border-border pb-4">
               <LayoutPanelTop className="size-4 text-amber-500" />
               <h2 className="font-semibold">Studio</h2>
