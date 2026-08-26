@@ -1,161 +1,158 @@
-# Turborepo starter
+# Synapse LM
 
-This Turborepo starter is maintained by the Turborepo core team.
+NotebookLM-inspired learning workspace. Create notebooks, add PDFs / websites / YouTube videos / text, and chat with your sources via RAG. Generate summaries, takeaways, flashcards, quizzes, mind-maps, and reports. Everything is grounded in what you provide.
 
-## Using this example
+## Features
 
-Run the following command:
+- **Notebooks (Workspaces)** — create, search, rename, pick an icon, choose a default model
+- **Sources** — PDF (Cloudinary + `unpdf`), website (Firecrawl), YouTube transcripts, text/markdown; chunked, embedded (`text-embedding-3-small`), indexed per-workspace in Pinecone
+- **Chat** — streaming chat with citations, retrieved context, rolling conversation summaries, Mem0 long-term memory, and optional Tavily web search via tool calling
+- **Studio** — manual artifact generation (Summary / Takeaways / Flashcards / Quiz / Mind Map / Report) with source picker and auto-poll
+- **Auth** — Clerk on web (Next.js) and API (Express), webhook syncs users to Postgres
 
-```sh
-npx create-turbo@latest
+## Stack
+
+| Layer | Tech |
+|---|---|
+| Monorepo | pnpm workspaces + Turborepo, TypeScript throughout (`type: module`) |
+| Web | Next.js 16 (App Router, React 19), Tailwind v4 + shadcn/Base-UI, TanStack Query, tRPC 11, Clerk, `ai` + `@ai-sdk/react` + `streamdown` |
+| API | Express 5 + `tsx watch`, `tsup`, tRPC 11 + `trpc-to-openapi` (Scalar at `/docs`, `/openapi.json`), Inngest at `/api/inngest` |
+| DB | PostgreSQL + Prisma 7 (`@prisma/adapter-pg`), migrations in `packages/database/prisma` |
+| Vectors | Pinecone serverless (AWS us-east-1, 1536-dim cosine, namespace = `workspaceId`) |
+| AI | OpenRouter via Vercel AI SDK + OpenAI embeddings |
+| Jobs | Inngest (`packages/jobs`, client in `packages/jobs-client`) |
+| Other | Cloudinary (PDFs), Mem0, Tavily, Firecrawl, `youtube-transcript`, `unpdf` |
+
+## Repo Layout
+
+```
+apps/web        Next.js app  (/, /login, /sign-up, /dashboard, /workspace/[id])
+apps/api        Express API  (/trpc, /api, /api/webhooks/clerk/webhook, /workspace/:id/chat|sources, /api/inngest, /health, /docs)
+packages/database   Prisma schema + generated client, env loader
+packages/trpc       tRPC routers (workspace, source, artifact, chat, test) + OpenAPI
+packages/services   business logic (WorkspaceService, SourceService, SourceProcessingService, ChatService, ArtifactService, etc.)
+packages/ai         chat model + embeddings
+packages/rag        loaders (website/youtube/pdf), chunking, retrieve + system prompt
+packages/vector-store  Pinecone wrapper
+packages/storage    Cloudinary
+packages/memory     Mem0 wrapper
+packages/web-search Tavily wrapper
+packages/jobs / jobs-client  Inngest
+packages/errors, logger, eslint-config, typescript-config
 ```
 
-## What's inside?
+## Prerequisites
 
-This Turborepo includes the following packages/apps:
+- Node 18+, pnpm 9
+- PostgreSQL (Neon recommended), Pinecone index, Cloudinary account, OpenRouter key, Clerk app, Tavily / Firecrawl / Mem0 keys as needed
 
-### Apps and Packages
+## Setup
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+```bash
+pnpm install
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+# env — single source of truth at repo root (per-package .env are fallback only)
+cp .env.example .env
+# fill all keys in .env (see table below); apps/web also reads NEXT_PUBLIC_* via Next.js
 
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+# database — generate client + apply migrations
+pnpm db:generate
+pnpm db:migrate
 ```
 
-Without global `turbo`, use your package manager:
+Optional: `pnpm db:studio` to inspect data.
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+## Environment
+
+All local dev keys live in **root `.env`** (loaded by `dotenv -e .env -- turbo run dev` and by `packages/database/env.ts` / `packages/web-search/src/client.ts` self-loaders). Production injects them via hosting env vars (`tsup` build has no dotenv).
+
+`apps/web/.env` is kept only for `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (Next.js requires it under `apps/web/`).
+
+| Key | Where |
+|---|---|
+| `DATABASE_URL` | Postgres (Neon) |
+| `CLERK_PUBLISHABLE_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk |
+| `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET` | Clerk |
+| `TAVILY_API_KEY` | Tavily |
+| `PINECONE_API_KEY`, `PINECONE_INDEX` | Pinecone |
+| `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL` | OpenRouter |
+| `FIRECRAWL_API_KEY` | Firecrawl |
+| `CLOUDINARY_CLOUD_NAME/PRESET/API_KEY/API_SECRET` | Cloudinary |
+| `MEM0_API_KEY` | Mem0 |
+| `INNGEST_DEV`, `INNGEST_EVENT_KEY` | Inngest (local: `INNGEST_DEV=1`) |
+| `NEXT_PUBLIC_API_URL`, `BASE_URL`, `PORT`, `NODE_ENV` | App wiring |
+
+See `.env.example` for placeholders.
+
+## Run
+
+```bash
+# web + api together (root injects .env for both)
+pnpm dev
+# web:   http://localhost:3000
+# api:   http://localhost:8000  (health at /health, docs at /docs)
+
+# Inngest dev (separate terminal, required for source processing + artifacts)
+npx inngest-cli@latest dev -u http://localhost:8000/api/inngest
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Individual apps:
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
+```bash
+pnpm --filter web dev        # Next.js only
+pnpm --filter @repo/api dev  # Express only (tsx watch)
 ```
 
-Without global `turbo`:
+Exposed ngrok for Clerk webhooks:
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```bash
+ngrok http 8000
+# Clerk Dashboard → Webhooks → https://<ngrok>/api/webhooks/clerk/webhook → user.created/updated/deleted
 ```
 
-### Develop
+## Scripts
 
-To develop all apps and packages, run the following command:
+| Command | Description |
+|---|---|
+| `pnpm dev` | `turbo run dev` (web + api) |
+| `pnpm build` | `turbo run build` |
+| `pnpm lint` | `turbo run lint` (`--max-warnings 0`) |
+| `pnpm check-types` | `turbo run check-types` |
+| `pnpm format` | Prettier |
+| `pnpm test` / `pnpm test:watch` | Vitest (`vitest run` / watch) |
+| `pnpm db:generate` | Prisma generate |
+| `pnpm db:migrate` | Prisma migrate dev |
+| `pnpm db:studio` | Prisma Studio |
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+Per-package filters: `pnpm --filter web build`, `pnpm --filter @repo/api build`, etc.
 
-```sh
-cd my-turborepo
-turbo dev
-```
+## API Surface
 
-Without global `turbo`, use your package manager:
+- **tRPC** at `/trpc` and REST at `/api` (OpenAPI) via `trpc-to-openapi`: `workspace`, `source`, `artifact`, `chat`, `test`
+- **Streaming chat**: `POST /workspace/:workspaceId/chat` (SSE, `ai` UIMessage, `DefaultChatTransport`)
+- **PDF upload**: `POST /workspace/:workspaceId/sources/upload` (multipart, `upload-middleware`)
+- **Webhooks/queue**: `POST /api/webhooks/clerk/webhook`, `POST /api/inngest`
+- **Introspection**: `GET /openapi.json`, `GET /docs` (Scalar), `GET /health`, `GET /`
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
+## Data Model
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+`User (clerkId)` → `Workspace` → `Source` → `SourceChunk`, `Conversation` → `Message`, `LearningArtifact (SUMMARY/TAKEAWAYS/FLASHCARDS/QUIZ/MINDMAP/REPORT)`
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+Pipeline: upload (Multer → Cloudinary + `unpdf`) → chunk (`chunkPages`/`chunkText`) → embed + Pinecone upsert (namespace = workspace) → RAG retrieve → streamed answer + citations.
 
-```sh
-turbo dev --filter=web
-```
+## Identity Note
 
-Without global `turbo`:
+`ctx.userId` is always the **Clerk external ID**. It is stored only in `User.clerkId` and passed to Mem0/Clerk. All Prisma foreign keys use the internal `User.id` — services resolve `clerkId → id` internally. Client payloads never include `userId`; ownership is enforced via `workspaceService.getWorkspaceByIdAndUserId`.
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+## Production
 
-### Remote Caching
+- `pnpm build` then `pnpm --filter @repo/api start` (`node dist/index.js`) — expects env vars injected by hosting (Vercel/Neon); no `.env` files are bundled.
+- Run `pnpm db:migrate` (or `prisma migrate deploy`) against the production database before first start.
+- Configure the same Clerk webhook URL for production.
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## Troubleshooting
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
-
-
+- `User profile is not synchronized` — webhook hasn't fired yet; check `CLERK_WEBHOOK_SECRET` and ngrok, or re-sign-in (fallback sync runs on first protected request).
+- `ECONNREFUSED` on Prisma — check `DATABASE_URL` in root `.env` (Neon requires `?sslmode=require`).
+- `PINECONE_API_KEY / CLOUDINARY / OPENROUTER not configured` — fill root `.env` and restart `pnpm dev`.
+- `Input parser must be a ZodObject` (OpenAPI) — all tRPC inputs use `z.object` (see `packages/trpc` routes).

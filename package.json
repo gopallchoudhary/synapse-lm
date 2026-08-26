@@ -7,6 +7,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "db:generate": "dotenv -- turbo db:generate",
     "db:migrate": "dotenv -- turbo db:migrate",
     "db:studio": "dotenv -- turbo db:studio"
@@ -14,7 +16,8 @@
   "devDependencies": {
     "prettier": "^3.7.4",
     "turbo": "^2.10.6",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "^4.1.11"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {

@@ -1,7 +1,13 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { ArrowLeft, Settings2 } from "lucide-react";
+import {
+  ArrowLeft,
+  FileText,
+  MessageSquare,
+  LayoutPanelTop,
+  Settings2,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
@@ -17,11 +23,13 @@ import {
 } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
 import {
   useDeleteWorkspace,
   useUpdateWorkspace,
   useWorkspace,
 } from "~/features/workspaces/hooks/use-workspaces";
+import { ThemeToggle } from "~/components/theme-toggle";
 import { ChatPanel } from "~/features/chat/components/chat-panel";
 import { SourceManager } from "~/features/sources/components/source-manager";
 import { StudioPanel } from "~/features/learn/components/studio-panel";
@@ -35,12 +43,16 @@ type SettingsForm = {
   defaultModel: WorkspaceModel;
 };
 
+const panelCard =
+  "flex min-h-0 flex-col overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] dark:ring-1 dark:ring-white/[0.06]";
+
 export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   const router = useRouter();
   const workspaceQuery = useWorkspace(workspaceId);
   const updateWorkspace = useUpdateWorkspace();
   const deleteWorkspace = useDeleteWorkspace();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("chat");
   const [form, setForm] = useState<SettingsForm>({
     title: "",
     description: "",
@@ -105,18 +117,18 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   }
 
   return (
-    <main className="min-h-svh bg-background text-foreground">
-      <header className="border-b border-border/70 bg-background/90 backdrop-blur">
+    <main className="flex h-svh flex-col overflow-hidden bg-background text-foreground">
+      <header className="sticky top-0 z-20 shrink-0 border-b border-border/70 bg-background/80 backdrop-blur supports-backdrop-filter:bg-background/80">
         <div className="mx-auto flex min-h-16 w-full max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <Link
               aria-label="Back to notebooks"
-              className="grid size-9 shrink-0 place-items-center rounded-xl border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
+              className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
               href="/dashboard"
             >
               <ArrowLeft className="size-4" />
             </Link>
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-foreground text-sm font-semibold text-background">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-foreground text-sm font-semibold text-background shadow-sm">
               {workspace.icon || "S"}
             </span>
             <div className="min-w-0">
@@ -127,6 +139,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
               <DialogTrigger
                 render={
@@ -224,20 +237,63 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[1600px] p-3 sm:p-5">
-        <div className="grid gap-3 lg:grid-cols-[minmax(220px,0.72fr)_minmax(0,1.5fr)_minmax(240px,0.8fr)]">
-          <section className="flex h-[320px] flex-col rounded-3xl border border-border bg-card p-5 sm:h-[500px]">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-1 min-h-0 flex-col p-3 sm:p-4 lg:p-5">
+        <div className="hidden flex-1 min-h-0 gap-3 lg:grid lg:grid-cols-[minmax(260px,0.72fr)_minmax(0,1.5fr)_minmax(300px,0.84fr)]">
+          <section className={`${panelCard} p-5 sm:p-6`}>
             <SourceManager workspaceId={workspaceId} />
           </section>
-
-          <section className="flex h-[420px] flex-col rounded-3xl border border-border bg-card p-5 sm:h-[500px]">
+          <section className={`${panelCard} p-5 sm:p-6`}>
             <ChatPanel workspaceId={workspaceId} />
           </section>
-
-          <section className="flex h-[320px] flex-col rounded-3xl border border-border bg-card p-5 sm:h-[500px]">
+          <section className={`${panelCard} p-5 sm:p-6`}>
             <StudioPanel workspaceId={workspaceId} />
           </section>
         </div>
+
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="flex flex-1 min-h-0 flex-col gap-3 lg:hidden"
+        >
+          <TabsList className="grid w-full grid-cols-3 p-1">
+            <TabsTrigger value="sources" className="gap-1.5">
+              <FileText className="size-4" />
+              Sources
+            </TabsTrigger>
+            <TabsTrigger value="chat" className="gap-1.5">
+              <MessageSquare className="size-4" />
+              Chat
+            </TabsTrigger>
+            <TabsTrigger value="studio" className="gap-1.5">
+              <LayoutPanelTop className="size-4" />
+              Studio
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent
+            value="sources"
+            className="flex flex-1 min-h-0 flex-col overflow-hidden data-[state=inactive]:hidden"
+          >
+            <div className={`${panelCard} flex flex-1 min-h-0 flex-col p-5`}>
+              <SourceManager workspaceId={workspaceId} />
+            </div>
+          </TabsContent>
+          <TabsContent
+            value="chat"
+            className="flex flex-1 min-h-0 flex-col overflow-hidden data-[state=inactive]:hidden"
+          >
+            <div className={`${panelCard} flex flex-1 min-h-0 flex-col p-5`}>
+              <ChatPanel workspaceId={workspaceId} />
+            </div>
+          </TabsContent>
+          <TabsContent
+            value="studio"
+            className="flex flex-1 min-h-0 flex-col overflow-hidden data-[state=inactive]:hidden"
+          >
+            <div className={`${panelCard} flex flex-1 min-h-0 flex-col p-5`}>
+              <StudioPanel workspaceId={workspaceId} />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </main>
   );

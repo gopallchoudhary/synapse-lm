@@ -38,7 +38,9 @@ function formatTime(value: string | Date) {
 }
 
 function getApiBase() {
-	return (env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
+	return (env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000")
+		.replace(/\/trpc\/?$/, "")
+		.replace(/\/$/, "");
 }
 
 function toUIMessages(
