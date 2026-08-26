@@ -93,6 +93,7 @@ export function buildChatSystemPrompt(input: {
 	conversationSummary?: string | null;
 	userMemories?: UserMemoryContext[];
 	webSearchEnabled?: boolean;
+	webResults?: { title: string; url: string; content: string }[];
 }) {
 	const today = new Date().toISOString().split("T")[0];
 	const sections: string[] = [
@@ -102,10 +103,11 @@ export function buildChatSystemPrompt(input: {
 
 	if (input.webSearchEnabled) {
 		sections.push(
-			"You have access to a web_search tool for up-to-date information outside the workspace.",
-			"CRITICAL — WHEN WEB SEARCH IS ENABLED: For ANY factual question about real-world events, product launches, release dates, prices, people, news, or information that could have changed since your training data, you MUST call web_search BEFORE answering. Do NOT answer from parametric memory alone. Verify via web search first, then answer using the search results.",
-			"If the web results show no information or contradict your knowledge, say so explicitly — never hallucinate a date or fact.",
-			"Cite web results inline using [W1], [W2], etc. matching the web result blocks. Prefer web citations over uncited claims when web search was used.",
+			"WEB SEARCH RESULTS ARE ALREADY PROVIDED BELOW in the 'Web search results:' section when available.",
+			"You also have a web_search tool for additional follow-up queries.",
+			"You MUST base factual claims about real-world events, prices, versions, launch dates, and news on the provided web results. Do NOT answer from parametric memory alone.",
+			"If the web results contain no information about the topic, say so explicitly — never hallucinate a date or fact.",
+			"Cite web results inline using [W1], [W2], etc. matching the web result blocks. Prefer web citations over uncited claims.",
 		);
 	}
 
@@ -123,6 +125,25 @@ export function buildChatSystemPrompt(input: {
 	const summary = input.conversationSummary?.trim();
 	if (summary) {
 		sections.push("Earlier conversation summary:", summary);
+	}
+
+	const webResults = input.webResults ?? [];
+	if (input.webSearchEnabled && webResults.length > 0) {
+		const webBlock = webResults
+			.map(
+				(result, index) =>
+					`[W${index + 1}] ${result.title} (${result.url})\n${result.content}`,
+			)
+			.join("\n\n");
+
+		sections.push(
+			"Web search results:",
+			webBlock,
+		);
+	} else if (input.webSearchEnabled && webResults.length === 0) {
+		sections.push(
+			"Web search returned no results for this query. State that you could not find web information instead of inventing any.",
+		);
 	}
 
 	if (input.chunks.length === 0) {

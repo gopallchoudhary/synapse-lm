@@ -62,8 +62,12 @@ export async function streamWorkspaceChat(
 	const chatModel =
 		CHAT_MODELS.find((model) => model === requestedModel) ?? CHAT_MODEL;
 
-	const webSearchEnabled =
-		input.webSearch === true && !!process.env.TAVILY_API_KEY?.trim();
+	if (input.webSearch === true && !process.env.TAVILY_API_KEY?.trim()) {
+		throw new ValidationError(
+			"Web search is enabled but TAVILY_API_KEY is not configured on the server. Add it to packages/web-search/.env and restart.",
+		);
+	}
+	const webSearchEnabled = input.webSearch === true;
 
 	const userText = getLastUserMessageText(input.messages);
 	if (!userText) {
@@ -81,6 +85,20 @@ export async function streamWorkspaceChat(
 		role: "USER",
 		content: userText,
 	});
+
+	let webSearchResults: TavilySearchResponse | null = null;
+
+	if (webSearchEnabled) {
+		try {
+			webSearchResults = await searchWeb(userText);
+		} catch (error) {
+			throw new ValidationError(
+				error instanceof Error
+					? `Web search failed: ${error.message}`
+					: "Web search failed. Try again.",
+			);
+		}
+	}
 
 	const [retrievedChunks, userMemories] = await Promise.all([
 		retrieveWorkspaceContext(workspaceId, userText),
@@ -103,14 +121,18 @@ export async function streamWorkspaceChat(
 		conversationSummary: conversation.summary,
 		userMemories: userMemories.map((memory) => memory.memory),
 		webSearchEnabled,
+		webResults:
+			webSearchResults?.results.map((result) => ({
+				title: result.title,
+				url: result.url,
+				content: result.content,
+			})) ?? [],
 	});
 
 	const contextMessages =
 		conversation.summary && input.messages.length > RECENT_MESSAGE_WINDOW
 			? input.messages.slice(-RECENT_MESSAGE_WINDOW)
 			: input.messages;
-
-	let webSearchResults: TavilySearchResponse | null = null;
 
 	const stream = createUIMessageStream({
 		originalMessages: input.messages,
