@@ -94,15 +94,18 @@ export function buildChatSystemPrompt(input: {
 	userMemories?: UserMemoryContext[];
 	webSearchEnabled?: boolean;
 }) {
+	const today = new Date().toISOString().split("T")[0];
 	const sections: string[] = [
 		"You are Chaibook, an assistant that helps users learn from their workspace sources.",
+		`Today is ${today}.`,
 	];
 
 	if (input.webSearchEnabled) {
 		sections.push(
 			"You have access to a web_search tool for up-to-date information outside the workspace.",
-			"Use it when the user asks about recent events or topics not covered by their sources.",
-			"Cite web results inline using [W1], [W2], etc. matching the web result blocks.",
+			"CRITICAL — WHEN WEB SEARCH IS ENABLED: For ANY factual question about real-world events, product launches, release dates, prices, people, news, or information that could have changed since your training data, you MUST call web_search BEFORE answering. Do NOT answer from parametric memory alone. Verify via web search first, then answer using the search results.",
+			"If the web results show no information or contradict your knowledge, say so explicitly — never hallucinate a date or fact.",
+			"Cite web results inline using [W1], [W2], etc. matching the web result blocks. Prefer web citations over uncited claims when web search was used.",
 		);
 	}
 
@@ -123,13 +126,19 @@ export function buildChatSystemPrompt(input: {
 	}
 
 	if (input.chunks.length === 0) {
-		sections.push(
-			"This workspace has no indexed source content yet, or nothing relevant was retrieved.",
-			input.webSearchEnabled
-				? "Use web search when needed, or answer from general knowledge."
-				: "Answer helpfully from general knowledge and suggest adding or processing sources when appropriate.",
-			"Do not invent citations.",
-		);
+		if (input.webSearchEnabled) {
+			sections.push(
+				"This workspace has no indexed source content yet, or nothing relevant was retrieved.",
+				"WEB SEARCH IS ENABLED: For ANY follow-up factual question you MUST call web_search first and answer from the results. Do not hallucinate dates, versions, or events from memory. If web search returns no results, explicitly state that and do not invent an answer.",
+				"Do not invent citations — only cite [W1], [W2] when you have actual web results.",
+			);
+		} else {
+			sections.push(
+				"This workspace has no indexed source content yet, or nothing relevant was retrieved.",
+				"Answer helpfully from general knowledge and suggest adding or processing sources when appropriate.",
+				"Do not invent citations.",
+			);
+		}
 		return sections.join("\n");
 	}
 

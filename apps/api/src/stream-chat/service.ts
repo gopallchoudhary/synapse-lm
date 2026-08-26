@@ -119,7 +119,7 @@ export async function streamWorkspaceChat(
 				? {
 						web_search: tool({
 							description:
-								"Search the web for up-to-date information outside the workspace sources.",
+								"MANDATORY for factual, temporal, or real-time queries when web search is enabled. You MUST call this tool BEFORE answering questions about when something was launched/released, current events, recent news, prices, versions, or any fact that could have changed after your training cutoff. Do NOT answer from memory alone — verify via web search.",
 							inputSchema: z.object({
 								query: z
 									.string()
