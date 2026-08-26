@@ -30,7 +30,7 @@ export const sourceRouter = router({
 		.input(listSourcesInputModel)
 		.output(sourceListOutputModel)
 		.query(({ input, ctx }) =>
-			sourceService.getSourcesByWorkspaceId(ctx.userId, input.workspaceId, {
+			sourceService.getSourcesByWorkspaceId(input.workspaceId, ctx.userId, {
 				q: input.q,
 				type: input.type,
 				status: input.status,

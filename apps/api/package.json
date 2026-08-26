@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"start": "node dist/index.js",
-		"dev": "dotenv -- tsx watch ./src/index.ts",
+		"dev": "dotenv -e .env -e ../../.env -e ../../packages/database/.env -e ../../packages/ai/.env -e ../../packages/rag/.env -e ../../packages/storage/.env -e ../../packages/vector-store/.env -- tsx watch ./src/index.ts",
 		"build": "tsup",
 		"lint": "eslint . --max-warnings 0"
 	},

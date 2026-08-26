@@ -2,7 +2,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { ValidationError } from "@repo/errors";
 
 const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET ?? "anhtyity";
+const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
 const apiKey = process.env.CLOUDINARY_API_KEY;
 const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
@@ -59,8 +59,10 @@ export async function uploadPdfToCloudinary(
 	buffer: Buffer,
 	filename: string,
 ): Promise<CloudinaryUploadResult> {
-	if (!cloudName) {
-		throw new ValidationError("Cloudinary is not configured on the server");
+	if (!cloudName || !uploadPreset) {
+		throw new ValidationError(
+			"Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET.",
+		);
 	}
 
 	const form = new FormData();

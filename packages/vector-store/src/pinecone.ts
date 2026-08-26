@@ -164,7 +164,7 @@ export async function deleteWorkspaceVectors(workspaceId: string) {
  * Queries a workspace namespace for the most similar vectors to a query embedding.
  *
  * @param workspaceId - Pinecone namespace to search
- * @param vector - Query embedding (1536 dimensions)
+ * @param vector - Query embedding (512 dimensions)
  * @param topK - Maximum number of matches to return
  * @returns Pinecone match objects with scores and metadata
  *
