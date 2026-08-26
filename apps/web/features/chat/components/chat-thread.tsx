@@ -61,9 +61,8 @@ export function ChatThread({
 	getToken: () => Promise<string | null>;
 	conversations: ConversationMeta[];
 }) {
-	const [selectedId, setSelectedId] = useState<string | null>(
-		conversations[0]?.id ?? null,
-	);
+	const [selectedId, setSelectedId] = useState<string | null>(null);
+	const didInitRef = useRef(false);
 	const [webSearch, setWebSearch] = useState(false);
 	const [composer, setComposer] = useState("");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -125,7 +124,7 @@ export function ChatThread({
 	} as never);
 
 	useEffect(() => {
-		if (historyMessages.length > 0) {
+		if (selectedId && historyMessages.length > 0) {
 			setMessages(historyMessages as never);
 		} else if (!selectedId) {
 			setMessages([]);
@@ -133,8 +132,10 @@ export function ChatThread({
 	}, [historyMessages, selectedId, setMessages]);
 
 	useEffect(() => {
+		if (didInitRef.current) return;
 		if (!selectedId && conversations[0]) {
 			setSelectedId(conversations[0].id);
+			didInitRef.current = true;
 		}
 	}, [conversations, selectedId]);
 
