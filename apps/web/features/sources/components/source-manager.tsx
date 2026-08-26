@@ -1,9 +1,12 @@
 "use client";
 
 import {
+	FileCode,
 	FileText,
 	Globe,
 	MonitorPlay,
+	PanelLeftClose,
+	PanelLeftOpen,
 	Plus,
 	RotateCcw,
 	Search,
@@ -30,6 +33,11 @@ import {
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "~/components/ui/tooltip";
+import {
 	useCreateTextSource,
 	useDeleteSource,
 	useImportWebsite,
@@ -42,30 +50,62 @@ import {
 type SourceType = "PDF" | "WEBSITE" | "YOUTUBE" | "TEXT" | "MARKDOWN";
 type SourceStatus = "PENDING" | "PROCESSING" | "READY" | "FAILED";
 
-const sourceTypeMeta: Record<SourceType, { label: string; icon: typeof FileText }> = {
-	PDF: { label: "PDF", icon: FileText },
-	WEBSITE: { label: "Website", icon: Globe },
-	YOUTUBE: { label: "YouTube", icon: MonitorPlay },
-	TEXT: { label: "Text", icon: Type },
-	MARKDOWN: { label: "Markdown", icon: Type },
+const sourceTypeMeta: Record<
+	SourceType,
+	{ label: string; icon: typeof FileText; colorClass: string; badgeBg: string }
+> = {
+	PDF: {
+		label: "PDF",
+		icon: FileText,
+		colorClass: "text-red-600 dark:text-red-400",
+		badgeBg: "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400",
+	},
+	WEBSITE: {
+		label: "Website",
+		icon: Globe,
+		colorClass: "text-blue-600 dark:text-blue-400",
+		badgeBg: "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400",
+	},
+	YOUTUBE: {
+		label: "YouTube",
+		icon: MonitorPlay,
+		colorClass: "text-rose-600 dark:text-rose-400",
+		badgeBg: "bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400",
+	},
+	TEXT: {
+		label: "Text",
+		icon: Type,
+		colorClass: "text-amber-600 dark:text-amber-400",
+		badgeBg: "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400",
+	},
+	MARKDOWN: {
+		label: "Markdown",
+		icon: FileCode,
+		colorClass: "text-emerald-600 dark:text-emerald-400",
+		badgeBg: "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400",
+	},
 };
 
-const statusMeta: Record<SourceStatus, { label: string; className: string }> = {
+const statusMeta: Record<SourceStatus, { label: string; className: string; dotClass: string }> = {
 	READY: {
 		label: "Ready",
 		className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+		dotClass: "bg-emerald-500",
 	},
 	PROCESSING: {
 		label: "Processing",
 		className: "bg-amber-500/10 text-amber-600 animate-pulse dark:text-amber-400",
+		dotClass: "bg-amber-500 animate-pulse",
 	},
 	PENDING: {
 		label: "Queued",
 		className: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+		dotClass: "bg-sky-500 animate-pulse",
 	},
 	FAILED: {
 		label: "Failed",
 		className: "bg-destructive/10 text-destructive",
+		dotClass: "bg-destructive",
 	},
 };
 
@@ -78,7 +118,13 @@ function formatDate(value: Date | string) {
 
 type AddMode = "text" | "markdown" | "website" | "youtube" | "pdf";
 
-function AddSourceDialog({ workspaceId }: { workspaceId: string }) {
+function AddSourceDialog({
+	workspaceId,
+	trigger,
+}: {
+	workspaceId: string;
+	trigger?: React.ReactElement;
+}) {
 	const [open, setOpen] = useState(false);
 	const [mode, setMode] = useState<AddMode>("text");
 	const [title, setTitle] = useState("");
@@ -189,10 +235,12 @@ function AddSourceDialog({ workspaceId }: { workspaceId: string }) {
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger
 				render={
-					<Button size="sm">
-						<Plus data-icon="inline-start" />
-						Add source
-					</Button>
+					trigger ?? (
+						<Button size="sm">
+							<Plus data-icon="inline-start" />
+							Add source
+						</Button>
+					)
 				}
 			/>
 			<DialogContent className="sm:max-w-lg">
@@ -323,7 +371,23 @@ function AddSourceDialog({ workspaceId }: { workspaceId: string }) {
 	);
 }
 
-export function SourceManager({ workspaceId }: { workspaceId: string }) {
+export interface SourceManagerProps {
+	workspaceId: string;
+	isCollapsed?: boolean;
+	onToggleCollapse?: () => void;
+	onExpand?: () => void;
+	selectedSourceId?: string | null;
+	onSelectSource?: (id: string | null) => void;
+}
+
+export function SourceManager({
+	workspaceId,
+	isCollapsed = false,
+	onToggleCollapse,
+	onExpand,
+	selectedSourceId,
+	onSelectSource,
+}: SourceManagerProps) {
 	const [search, setSearch] = useState("");
 	const [statusFilter, setStatusFilter] = useState<"ALL" | SourceStatus>("ALL");
 	const deferredSearch = useDeferredValue(search.trim().toLowerCase());
@@ -352,6 +416,104 @@ export function SourceManager({ workspaceId }: { workspaceId: string }) {
 		{ value: "FAILED", label: "Failed" },
 	];
 
+	if (isCollapsed) {
+		return (
+			<div className="flex h-full min-h-0 flex-col items-center justify-between py-1">
+				<div className="flex w-full flex-col items-center gap-2">
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									aria-label="Expand sources"
+									className="size-9 rounded-xl text-muted-foreground hover:text-foreground"
+									onClick={onToggleCollapse}
+									size="icon-sm"
+									variant="ghost"
+								>
+									<PanelLeftOpen className="size-4" />
+								</Button>
+							}
+						/>
+						<TooltipContent side="right">Expand sources</TooltipContent>
+					</Tooltip>
+
+					<AddSourceDialog
+						workspaceId={workspaceId}
+						trigger={
+							<Tooltip>
+								<TooltipTrigger
+									render={
+										<Button
+											aria-label="Add source"
+											className="size-9 rounded-xl border border-dashed border-border bg-background text-muted-foreground shadow-xs hover:border-foreground/50 hover:bg-muted hover:text-foreground"
+											size="icon-sm"
+											variant="outline"
+										>
+											<Plus className="size-4" />
+										</Button>
+									}
+								/>
+								<TooltipContent side="right">Add source</TooltipContent>
+							</Tooltip>
+						}
+					/>
+
+					<div className="my-1 h-px w-6 bg-border" />
+
+					<div className="flex w-full min-h-0 flex-1 flex-col items-center gap-2 overflow-y-auto overflow-x-hidden pr-0.5">
+						{sources.map((source) => {
+							const meta = sourceTypeMeta[source.type] ?? sourceTypeMeta.TEXT;
+							const Icon = meta.icon;
+							const status = statusMeta[source.status] ?? statusMeta.PENDING;
+							const isSelected = selectedSourceId === source.id;
+
+							return (
+								<Tooltip key={source.id}>
+									<TooltipTrigger
+										render={
+											<button
+												aria-label={source.title}
+												className={`group relative flex size-9 shrink-0 items-center justify-center rounded-xl border transition-all hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+													meta.badgeBg
+												} ${isSelected ? "ring-2 ring-foreground ring-offset-1 ring-offset-background" : ""}`}
+												onClick={() => {
+													onSelectSource?.(source.id);
+													onExpand?.();
+												}}
+												type="button"
+											>
+												<Icon className="size-4" />
+												<span
+													className={`absolute -right-0.5 -top-0.5 size-2 rounded-full border border-background ${status.dotClass}`}
+												/>
+											</button>
+										}
+									/>
+									<TooltipContent className="flex max-w-xs flex-col gap-0.5 px-2.5 py-1.5" side="right">
+										<span className="max-w-[200px] truncate text-xs font-medium">
+											{source.title}
+										</span>
+										<span className="text-[10px] text-muted-foreground">
+											{meta.label} · {status.label}
+										</span>
+									</TooltipContent>
+								</Tooltip>
+							);
+						})}
+					</div>
+				</div>
+
+				{sources.length > 0 && (
+					<div className="pt-2 text-center">
+						<span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+							{sources.length}
+						</span>
+					</div>
+				)}
+			</div>
+		);
+	}
+
 	return (
 		<div className="flex h-full min-h-0 flex-col">
 			<div className="flex items-center justify-between gap-2 border-b border-border pb-3">
@@ -361,7 +523,39 @@ export function SourceManager({ workspaceId }: { workspaceId: string }) {
 						{readyCount} ready
 					</span>
 				</div>
-				<AddSourceDialog workspaceId={workspaceId} />
+				{onToggleCollapse && (
+					<Tooltip>
+						<TooltipTrigger
+							render={
+								<Button
+									aria-label="Collapse sources"
+									className="text-muted-foreground hover:text-foreground"
+									onClick={onToggleCollapse}
+									size="icon-sm"
+									variant="ghost"
+								>
+									<PanelLeftClose className="size-4" />
+								</Button>
+							}
+						/>
+						<TooltipContent side="right">Collapse panel</TooltipContent>
+					</Tooltip>
+				)}
+			</div>
+
+			<div className="pt-3">
+				<AddSourceDialog
+					workspaceId={workspaceId}
+					trigger={
+						<Button
+							variant="outline"
+							className="w-full rounded-full border-border/80 bg-background text-foreground shadow-xs hover:bg-muted font-medium text-sm gap-2 h-9"
+						>
+							<Plus className="size-4" />
+							Add sources
+						</Button>
+					}
+				/>
 			</div>
 
 			<div className="grid gap-2 py-3">
@@ -423,16 +617,25 @@ export function SourceManager({ workspaceId }: { workspaceId: string }) {
 				) : (
 					<ul className="space-y-2">
 						{filtered.map((source) => {
-							const meta = sourceTypeMeta[source.type];
+							const meta = sourceTypeMeta[source.type] ?? sourceTypeMeta.TEXT;
 							const Icon = meta.icon;
-							const status = statusMeta[source.status];
+							const status = statusMeta[source.status] ?? statusMeta.PENDING;
+							const isSelected = selectedSourceId === source.id;
+
 							return (
 								<li
-									className="group rounded-xl border border-border bg-background p-3 transition-colors hover:bg-muted/40"
+									className={`group rounded-xl border p-3 transition-colors hover:bg-muted/40 ${
+										isSelected
+											? "border-foreground bg-muted/20 ring-1 ring-foreground/20"
+											: "border-border bg-background"
+									}`}
 									key={source.id}
+									onClick={() => onSelectSource?.(source.id)}
 								>
 									<div className="flex items-start gap-3">
-										<span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
+										<span
+											className={`grid size-9 shrink-0 place-items-center rounded-lg border ${meta.badgeBg}`}
+										>
 											<Icon className="size-4" />
 										</span>
 										<div className="min-w-0 flex-1">
@@ -445,8 +648,9 @@ export function SourceManager({ workspaceId }: { workspaceId: string }) {
 												{formatDate(source.createdAt)}
 											</p>
 											<span
-												className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${status.className}`}
+												className={`mt-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${status.className}`}
 											>
+												<span className={`size-1.5 rounded-full ${status.dotClass}`} />
 												{status.label}
 											</span>
 										</div>
@@ -455,12 +659,13 @@ export function SourceManager({ workspaceId }: { workspaceId: string }) {
 												<Button
 													aria-label={`Reprocess ${source.title}`}
 													disabled={reprocessSource.isPending}
-													onClick={() =>
+													onClick={(e) => {
+														e.stopPropagation();
 														reprocessSource.mutate({
 															workspaceId,
 															sourceId: source.id,
-														})
-													}
+														});
+													}}
 													size="icon-sm"
 													variant="ghost"
 												>
@@ -470,7 +675,8 @@ export function SourceManager({ workspaceId }: { workspaceId: string }) {
 											<Button
 												aria-label={`Delete ${source.title}`}
 												disabled={deleteSource.isPending}
-												onClick={() => {
+												onClick={(e) => {
+													e.stopPropagation();
 													if (
 														window.confirm(
 															`Delete "${source.title}"? This removes it from your notebook.`,

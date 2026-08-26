@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import type { PanelImperativeHandle } from "react-resizable-panels";
 import { Button } from "~/components/ui/button";
 import {
   Dialog,
@@ -25,6 +26,12 @@ import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
 import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "~/components/ui/resizable";
+import { TooltipProvider } from "~/components/ui/tooltip";
+import {
   useDeleteWorkspace,
   useUpdateWorkspace,
   useWorkspace,
@@ -33,6 +40,7 @@ import { ThemeToggle } from "~/components/theme-toggle";
 import { ChatPanel } from "~/features/chat/components/chat-panel";
 import { SourceManager } from "~/features/sources/components/source-manager";
 import { StudioPanel } from "~/features/learn/components/studio-panel";
+import { cn } from "~/lib/utils";
 
 type WorkspaceModel = "gpt-4o-mini" | "gpt-4o";
 
@@ -42,6 +50,8 @@ type SettingsForm = {
   icon: string;
   defaultModel: WorkspaceModel;
 };
+
+const LAYOUT_STORAGE_KEY = "synapse:workspace-panel-layout:v1";
 
 const panelCard =
   "flex min-h-0 flex-col overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] dark:ring-1 dark:ring-white/[0.06]";
@@ -53,6 +63,66 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   const deleteWorkspace = useDeleteWorkspace();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("chat");
+  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
+  const [selectedArtifactId, setSelectedArtifactId] = useState<string | null>(null);
+  const [isSourcesCollapsed, setIsSourcesCollapsed] = useState(false);
+  const [isStudioCollapsed, setIsStudioCollapsed] = useState(false);
+
+  const sourcesPanelRef = useRef<PanelImperativeHandle | null>(null);
+  const studioPanelRef = useRef<PanelImperativeHandle | null>(null);
+
+  const [defaultLayout] = useState<Record<string, number> | undefined>(() => {
+    if (typeof window === "undefined") return undefined;
+    try {
+      const saved = localStorage.getItem(LAYOUT_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : undefined;
+    } catch {
+      return undefined;
+    }
+  });
+
+  function handleLayoutChanged(layout: Record<string, number>) {
+    try {
+      localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(layout));
+    } catch {
+      // Storage unavailable or quota exceeded
+    }
+  }
+
+  function toggleSources() {
+    const panel = sourcesPanelRef.current;
+    if (!panel) return;
+    if (panel.isCollapsed()) {
+      panel.expand();
+      setIsSourcesCollapsed(false);
+    } else {
+      panel.collapse();
+      setIsSourcesCollapsed(true);
+    }
+  }
+
+  function expandSources() {
+    sourcesPanelRef.current?.expand();
+    setIsSourcesCollapsed(false);
+  }
+
+  function toggleStudio() {
+    const panel = studioPanelRef.current;
+    if (!panel) return;
+    if (panel.isCollapsed()) {
+      panel.expand();
+      setIsStudioCollapsed(false);
+    } else {
+      panel.collapse();
+      setIsStudioCollapsed(true);
+    }
+  }
+
+  function expandStudio() {
+    studioPanelRef.current?.expand();
+    setIsStudioCollapsed(false);
+  }
+
   const [form, setForm] = useState<SettingsForm>({
     title: "",
     description: "",
@@ -237,64 +307,138 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[1600px] flex-1 min-h-0 flex-col p-3 sm:p-4 lg:p-5">
-        <div className="hidden flex-1 min-h-0 gap-3 lg:grid lg:grid-cols-[minmax(260px,0.72fr)_minmax(0,1.5fr)_minmax(300px,0.84fr)]">
-          <section className={`${panelCard} p-5 sm:p-6`}>
-            <SourceManager workspaceId={workspaceId} />
-          </section>
-          <section className={`${panelCard} p-5 sm:p-6`}>
-            <ChatPanel workspaceId={workspaceId} />
-          </section>
-          <section className={`${panelCard} p-5 sm:p-6`}>
-            <StudioPanel workspaceId={workspaceId} />
-          </section>
-        </div>
+      <TooltipProvider delay={100}>
+        <div className="mx-auto flex w-full max-w-[1600px] flex-1 min-h-0 flex-col p-3 sm:p-4 lg:p-5">
+          <div className="hidden flex-1 min-h-0 w-full lg:flex">
+            <ResizablePanelGroup
+              orientation="horizontal"
+              id="synapse-workspace-layout"
+              defaultLayout={defaultLayout}
+              onLayoutChanged={handleLayoutChanged}
+              className="h-full w-full min-h-0 gap-1.5"
+            >
+              <ResizablePanel
+                id="sources"
+                collapsible
+                minSize="220px"
+                maxSize="450px"
+                defaultSize="310px"
+                collapsedSize="56px"
+                panelRef={sourcesPanelRef}
+                onResize={(size) => {
+                  setIsSourcesCollapsed(size.inPixels <= 68);
+                }}
+                className={cn(
+                  panelCard,
+                  "transition-[padding] duration-150 ease-out",
+                  isSourcesCollapsed ? "p-2" : "p-5 sm:p-6"
+                )}
+              >
+                <SourceManager
+                  workspaceId={workspaceId}
+                  isCollapsed={isSourcesCollapsed}
+                  onToggleCollapse={toggleSources}
+                  onExpand={expandSources}
+                  selectedSourceId={selectedSourceId}
+                  onSelectSource={setSelectedSourceId}
+                />
+              </ResizablePanel>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="flex flex-1 min-h-0 flex-col gap-3 lg:hidden"
-        >
-          <TabsList className="grid w-full grid-cols-3 p-1">
-            <TabsTrigger value="sources" className="gap-1.5">
-              <FileText className="size-4" />
-              Sources
-            </TabsTrigger>
-            <TabsTrigger value="chat" className="gap-1.5">
-              <MessageSquare className="size-4" />
-              Chat
-            </TabsTrigger>
-            <TabsTrigger value="studio" className="gap-1.5">
-              <LayoutPanelTop className="size-4" />
-              Studio
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent
-            value="sources"
-            className="flex flex-1 min-h-0 flex-col overflow-hidden data-[state=inactive]:hidden"
+              <ResizableHandle withHandle className="mx-0.5 cursor-col-resize" />
+
+              <ResizablePanel
+                id="chat"
+                minSize="340px"
+                className={cn(panelCard, "p-5 sm:p-6 flex-1 min-w-0")}
+              >
+                <ChatPanel workspaceId={workspaceId} />
+              </ResizablePanel>
+
+              <ResizableHandle withHandle className="mx-0.5 cursor-col-resize" />
+
+              <ResizablePanel
+                id="studio"
+                collapsible
+                minSize="260px"
+                maxSize="480px"
+                defaultSize="350px"
+                collapsedSize="56px"
+                panelRef={studioPanelRef}
+                onResize={(size) => {
+                  setIsStudioCollapsed(size.inPixels <= 68);
+                }}
+                className={cn(
+                  panelCard,
+                  "transition-[padding] duration-150 ease-out",
+                  isStudioCollapsed ? "p-2" : "p-5 sm:p-6"
+                )}
+              >
+                <StudioPanel
+                  workspaceId={workspaceId}
+                  isCollapsed={isStudioCollapsed}
+                  onToggleCollapse={toggleStudio}
+                  onExpand={expandStudio}
+                  selectedArtifactId={selectedArtifactId}
+                  onSelectArtifact={setSelectedArtifactId}
+                />
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </div>
+
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="flex flex-1 min-h-0 flex-col gap-3 lg:hidden"
           >
-            <div className={`${panelCard} flex flex-1 min-h-0 flex-col p-5`}>
-              <SourceManager workspaceId={workspaceId} />
-            </div>
-          </TabsContent>
-          <TabsContent
-            value="chat"
-            className="flex flex-1 min-h-0 flex-col overflow-hidden data-[state=inactive]:hidden"
-          >
-            <div className={`${panelCard} flex flex-1 min-h-0 flex-col p-5`}>
-              <ChatPanel workspaceId={workspaceId} />
-            </div>
-          </TabsContent>
-          <TabsContent
-            value="studio"
-            className="flex flex-1 min-h-0 flex-col overflow-hidden data-[state=inactive]:hidden"
-          >
-            <div className={`${panelCard} flex flex-1 min-h-0 flex-col p-5`}>
-              <StudioPanel workspaceId={workspaceId} />
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+            <TabsList className="grid w-full grid-cols-3 p-1">
+              <TabsTrigger value="sources" className="gap-1.5">
+                <FileText className="size-4" />
+                Sources
+              </TabsTrigger>
+              <TabsTrigger value="chat" className="gap-1.5">
+                <MessageSquare className="size-4" />
+                Chat
+              </TabsTrigger>
+              <TabsTrigger value="studio" className="gap-1.5">
+                <LayoutPanelTop className="size-4" />
+                Studio
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent
+              value="sources"
+              className="flex flex-1 min-h-0 flex-col overflow-hidden data-[state=inactive]:hidden"
+            >
+              <div className={`${panelCard} flex flex-1 min-h-0 flex-col p-5`}>
+                <SourceManager
+                  workspaceId={workspaceId}
+                  selectedSourceId={selectedSourceId}
+                  onSelectSource={setSelectedSourceId}
+                />
+              </div>
+            </TabsContent>
+            <TabsContent
+              value="chat"
+              className="flex flex-1 min-h-0 flex-col overflow-hidden data-[state=inactive]:hidden"
+            >
+              <div className={`${panelCard} flex flex-1 min-h-0 flex-col p-5`}>
+                <ChatPanel workspaceId={workspaceId} />
+              </div>
+            </TabsContent>
+            <TabsContent
+              value="studio"
+              className="flex flex-1 min-h-0 flex-col overflow-hidden data-[state=inactive]:hidden"
+            >
+              <div className={`${panelCard} flex flex-1 min-h-0 flex-col p-5`}>
+                <StudioPanel
+                  workspaceId={workspaceId}
+                  selectedArtifactId={selectedArtifactId}
+                  onSelectArtifact={setSelectedArtifactId}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </TooltipProvider>
     </main>
   );
 }
