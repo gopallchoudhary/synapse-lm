@@ -3,16 +3,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { tavily } from "@tavily/core";
 
-const packageEnvPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "../.env");
-
 for (const envPath of [
+    path.join(path.dirname(fileURLToPath(import.meta.url)), "../.env"),
     path.resolve(process.cwd(), ".env"),
     path.resolve(process.cwd(), "packages/web-search/.env"),
     path.resolve(process.cwd(), "../../packages/web-search/.env"),
     path.join(path.dirname(fileURLToPath(import.meta.url)), "../../../.env"),
-    packageEnvPath,
 ]) {
-    config({ path: envPath, override: true });
+    config({ path: envPath });
 }
 
 export type TavilySearchResult = {
