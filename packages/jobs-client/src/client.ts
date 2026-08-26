@@ -2,6 +2,8 @@ import { Inngest } from "inngest";
 
 export const inngest = new Inngest({
 	id: "synapse-lm",
+	isDev: Boolean(process.env.INNGEST_DEV),
+	eventKey: process.env.INNGEST_EVENT_KEY,
 });
 
 export type SourceCreatedEvent = {

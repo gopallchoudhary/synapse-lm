@@ -1,12 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import {
-  ArrowLeft,
-  LayoutPanelTop,
-  MessageSquare,
-  Settings2,
-} from "lucide-react";
+import { ArrowLeft, MessageSquare, Settings2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
@@ -28,6 +23,7 @@ import {
   useWorkspace,
 } from "~/features/workspaces/hooks/use-workspaces";
 import { SourceManager } from "~/features/sources/components/source-manager";
+import { StudioPanel } from "~/features/learn/components/studio-panel";
 
 type WorkspaceModel = "gpt-4o-mini" | "gpt-4o";
 
@@ -250,19 +246,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
           </section>
 
           <section className="flex h-[320px] flex-col rounded-3xl border border-border bg-card p-5 sm:h-[500px]">
-            <div className="flex items-center gap-2 border-b border-border pb-4">
-              <LayoutPanelTop className="size-4 text-amber-500" />
-              <h2 className="font-semibold">Studio</h2>
-            </div>
-            <div className="grid min-h-60 place-items-center py-10 text-center">
-              <div>
-                <LayoutPanelTop className="mx-auto size-8 text-muted-foreground" />
-                <p className="mt-3 text-sm font-medium">Learning tools belong here</p>
-                <p className="mt-1 max-w-xs text-xs leading-5 text-muted-foreground">
-                  Summaries, flashcards, quizzes, and maps will be generated from your sources.
-                </p>
-              </div>
-            </div>
+            <StudioPanel workspaceId={workspaceId} />
           </section>
         </div>
       </div>
