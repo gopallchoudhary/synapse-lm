@@ -2,6 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { Spinner } from "~/components/ui/spinner";
+import { useSources } from "~/features/sources/hooks/use-sources";
 import { useConversations } from "../hooks/use-conversation";
 
 import { ChatThread } from "./chat-thread";
@@ -9,6 +10,11 @@ import { ChatThread } from "./chat-thread";
 export function ChatPanel({ workspaceId }: { workspaceId: string }) {
 	const { getToken } = useAuth();
 	const conversationsQuery = useConversations(workspaceId);
+	const sourcesQuery = useSources(workspaceId);
+
+	const readySourcesCount = (sourcesQuery.data ?? []).filter(
+		(source) => source.status === "READY",
+	).length;
 
 	if (conversationsQuery.isPending) {
 		return (
@@ -41,6 +47,7 @@ export function ChatPanel({ workspaceId }: { workspaceId: string }) {
 			workspaceId={workspaceId}
 			getToken={getToken}
 			conversations={conversationsQuery.data ?? []}
+			readySourcesCount={readySourcesCount}
 		/>
 	);
 }

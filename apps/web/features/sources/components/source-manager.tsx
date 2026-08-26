@@ -22,6 +22,17 @@ import {
 } from "react";
 import { Button } from "~/components/ui/button";
 import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogMedia,
+	AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
+import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -396,6 +407,7 @@ export function SourceManager({
 	const reprocessSource = useReprocessSource(workspaceId);
 
 	const sources = sourcesQuery.data ?? [];
+	const [sourceToDelete, setSourceToDelete] = useState<(typeof sources)[number] | null>(null);
 	const filtered = sources.filter((source) => {
 		if (statusFilter !== "ALL" && source.status !== statusFilter) return false;
 		if (!deferredSearch) return true;
@@ -677,16 +689,7 @@ export function SourceManager({
 												disabled={deleteSource.isPending}
 												onClick={(e) => {
 													e.stopPropagation();
-													if (
-														window.confirm(
-															`Delete "${source.title}"? This removes it from your notebook.`,
-														)
-													) {
-														deleteSource.mutate({
-															workspaceId,
-															sourceId: source.id,
-														});
-													}
+													setSourceToDelete(source);
 												}}
 												size="icon-sm"
 												variant="ghost"
@@ -701,6 +704,49 @@ export function SourceManager({
 					</ul>
 				)}
 			</div>
+
+			<AlertDialog
+				open={Boolean(sourceToDelete)}
+				onOpenChange={(open) => !open && setSourceToDelete(null)}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogMedia className="bg-destructive/10 text-destructive">
+							<Trash2 className="size-5" />
+						</AlertDialogMedia>
+						<AlertDialogTitle>Delete source</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to delete{" "}
+							<span className="font-semibold text-foreground">
+								&ldquo;{sourceToDelete?.title}&rdquo;
+							</span>
+							? This removes it from your notebook and grounding context.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>
+							Cancel
+						</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								if (!sourceToDelete) return;
+								const targetId = sourceToDelete.id;
+								if (selectedSourceId === targetId) {
+									onSelectSource?.(null as never);
+								}
+								setSourceToDelete(null);
+								deleteSource.mutate({
+									workspaceId,
+									sourceId: targetId,
+								});
+							}}
+							variant="destructive"
+						>
+							Delete source
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }

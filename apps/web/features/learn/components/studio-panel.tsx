@@ -16,6 +16,17 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogMedia,
+	AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
+import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -333,6 +344,9 @@ export function StudioPanel({
 	const [internalSelectedId, setInternalSelectedId] = useState<string | null>(
 		null,
 	);
+	const [artifactToDelete, setArtifactToDelete] = useState<
+		(typeof artifacts)[number] | null
+	>(null);
 
 	const artifacts = artifactsQuery.data ?? [];
 	const effectiveSelectedId = selectedArtifactId ?? internalSelectedId;
@@ -649,12 +663,7 @@ export function StudioPanel({
 													}`}
 													onClick={(event) => {
 														event.stopPropagation();
-														if (window.confirm(`Delete "${artifact.title}"?`)) {
-															deleteArtifact.mutate({
-																workspaceId,
-																artifactId: artifact.id,
-															});
-														}
+														setArtifactToDelete(artifact);
 													}}
 													role="button"
 													tabIndex={0}
@@ -662,14 +671,7 @@ export function StudioPanel({
 														if (event.key === "Enter" || event.key === " ") {
 															event.preventDefault();
 															event.stopPropagation();
-															if (
-																window.confirm(`Delete "${artifact.title}"?`)
-															) {
-																deleteArtifact.mutate({
-																	workspaceId,
-																	artifactId: artifact.id,
-																});
-															}
+															setArtifactToDelete(artifact);
 														}
 													}}
 												>
@@ -685,12 +687,23 @@ export function StudioPanel({
 						{selected && (
 							<div className="rounded-xl border border-border bg-background p-4">
 								<div className="flex items-center justify-between gap-2">
-									<h3 className="text-sm font-semibold">{selected.title}</h3>
-									<Badge
-										variant={statusLabel[selected.status]?.variant ?? "outline"}
-									>
-										{statusLabel[selected.status]?.label ?? selected.status}
-									</Badge>
+									<h3 className="truncate text-sm font-semibold">{selected.title}</h3>
+									<div className="flex shrink-0 items-center gap-1.5">
+										<Badge
+											variant={statusLabel[selected.status]?.variant ?? "outline"}
+										>
+											{statusLabel[selected.status]?.label ?? selected.status}
+										</Badge>
+										<Button
+											aria-label={`Delete ${selected.title}`}
+											className="text-muted-foreground hover:text-destructive"
+											onClick={() => setArtifactToDelete(selected)}
+											size="icon-xs"
+											variant="ghost"
+										>
+											<Trash2 className="size-3.5" />
+										</Button>
+									</div>
 								</div>
 
 								{selected.status === "PENDING" ||
@@ -717,6 +730,50 @@ export function StudioPanel({
 					</div>
 				)}
 			</div>
+
+			<AlertDialog
+				open={Boolean(artifactToDelete)}
+				onOpenChange={(open) => !open && setArtifactToDelete(null)}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogMedia className="bg-destructive/10 text-destructive">
+							<Trash2 className="size-5" />
+						</AlertDialogMedia>
+						<AlertDialogTitle>Delete artifact</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to delete{" "}
+							<span className="font-semibold text-foreground">
+								&ldquo;{artifactToDelete?.title}&rdquo;
+							</span>
+							? This learning artifact will be permanently removed.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>
+							Cancel
+						</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								if (!artifactToDelete) return;
+								const targetId = artifactToDelete.id;
+								if (effectiveSelectedId === targetId) {
+									setInternalSelectedId(null);
+									onSelectArtifact?.(null as never);
+								}
+								setArtifactToDelete(null);
+								deleteArtifact.mutate({
+									workspaceId,
+									artifactId: targetId,
+								});
+							}}
+							variant="destructive"
+						>
+							Delete artifact
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }

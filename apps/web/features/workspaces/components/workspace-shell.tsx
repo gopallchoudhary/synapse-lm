@@ -54,7 +54,7 @@ type SettingsForm = {
 const LAYOUT_STORAGE_KEY = "synapse:workspace-panel-layout:v1";
 
 const panelCard =
-  "flex min-h-0 flex-col overflow-hidden rounded-[28px] border border-border bg-card shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] dark:ring-1 dark:ring-white/[0.06]";
+  "flex min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xs dark:shadow-md dark:ring-1 dark:ring-white/[0.06]";
 
 export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
   const router = useRouter();
