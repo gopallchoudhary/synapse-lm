@@ -103,8 +103,8 @@ export function useUploadPdf(workspaceId: string) {
 				formData.append("title", input.title.trim());
 			}
 
-			const baseUrl =
-				env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+			const baseUrl = (env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000")
+				.replace(/\/trpc\/?$/, "");
 
 			const response = await fetch(
 				`${baseUrl}/workspace/${workspaceId}/sources/upload`,
@@ -117,9 +117,9 @@ export function useUploadPdf(workspaceId: string) {
 			);
 
 			if (!response.ok) {
-				const message = await response
-					.json()
-					.then((body: { message?: string }) => body.message)
+					const message = await response
+						.json()
+						.then((body: { message?: string; error?: string }) => body.message ?? body.error)
 					.catch(() => undefined);
 				throw new Error(
 					message ?? "PDF upload failed. Try a file under 10MB.",

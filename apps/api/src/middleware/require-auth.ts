@@ -1,4 +1,6 @@
 import { getAuth } from "@clerk/express";
+import { clerkClient } from "@clerk/express";
+import { UserService } from "@repo/services";
 import type { Request, Response, NextFunction } from "express";
 
 export default function requireAuth(
@@ -14,5 +16,9 @@ export default function requireAuth(
 		return;
 	}
 	req.userId = userId;
-	next();
+
+	new UserService()
+		.ensureClerkUser(userId, () => clerkClient.users.getUser(userId))
+		.then(() => next())
+		.catch(next);
 }

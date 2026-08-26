@@ -10,23 +10,25 @@ class SourceChunkService {
 
 	public async createSourceChunks(chunks: CreateSourceChunkData[]) {
 		if (chunks.length === 0) {
-			return Promise.resolve([]);
+			return [];
 		}
 
-		return prisma.$transaction(
-			chunks.map((chunk) =>
-				prisma.sourceChunk.create({
-					data: {
-						sourceId: chunk.sourceId,
-						index: chunk.index,
-						content: chunk.content,
-						tokenCount: chunk.tokenCount ?? null,
-						metadata: chunk.metadata,
-					},
-					select: sourceChunkSelect,
-				}),
-			),
-		);
+		const sourceId = chunks[0]!.sourceId;
+		await prisma.sourceChunk.createMany({
+			data: chunks.map((chunk) => ({
+				sourceId: chunk.sourceId,
+				index: chunk.index,
+				content: chunk.content,
+				tokenCount: chunk.tokenCount ?? null,
+				metadata: chunk.metadata,
+			})),
+		});
+
+		return prisma.sourceChunk.findMany({
+			where: { sourceId },
+			select: sourceChunkSelect,
+			orderBy: { index: "asc" },
+		});
 	}
 
 	public getChunksBySourceId(sourceId: string) {

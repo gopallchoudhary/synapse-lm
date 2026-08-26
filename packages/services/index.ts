@@ -6,8 +6,9 @@ import SourceChunkService from "./src/source-chunk/index.js"
 import ConversationService from "./src/conversation/index.js";
 import MessageService from "./src/message/index.js";
 import ArtifactService from "./src/artifact/index.js";
+import UserService from "./src/user/index.js";
 
-export { TestService, SourceService, WorkspaceService, SourceProcessingService, SourceChunkService, ConversationService, MessageService, ArtifactService };
+export { TestService, SourceService, WorkspaceService, SourceProcessingService, SourceChunkService, ConversationService, MessageService, ArtifactService, UserService };
 export {
     CHAT_MODELS,
     createWorkspaceSchemaInput,
