@@ -1,7 +1,7 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { ArrowLeft, MessageSquare, Settings2 } from "lucide-react";
+import { ArrowLeft, Settings2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
@@ -22,6 +22,7 @@ import {
   useUpdateWorkspace,
   useWorkspace,
 } from "~/features/workspaces/hooks/use-workspaces";
+import { ChatPanel } from "~/features/chat/components/chat-panel";
 import { SourceManager } from "~/features/sources/components/source-manager";
 import { StudioPanel } from "~/features/learn/components/studio-panel";
 
@@ -230,19 +231,7 @@ export function WorkspaceShell({ workspaceId }: { workspaceId: string }) {
           </section>
 
           <section className="flex h-[420px] flex-col rounded-3xl border border-border bg-card p-5 sm:h-[500px]">
-            <div className="flex items-center gap-2 border-b border-border pb-4">
-              <MessageSquare className="size-4 text-violet-500" />
-              <h2 className="font-semibold">Chat</h2>
-            </div>
-            <div className="grid min-h-80 place-items-center py-10 text-center">
-              <div>
-                <MessageSquare className="mx-auto size-8 text-muted-foreground" />
-                <p className="mt-3 text-sm font-medium">Ask your notebook anything</p>
-                <p className="mt-1 max-w-xs text-xs leading-5 text-muted-foreground">
-                  Source-grounded conversations will be available after resources are connected.
-                </p>
-              </div>
-            </div>
+            <ChatPanel workspaceId={workspaceId} />
           </section>
 
           <section className="flex h-[320px] flex-col rounded-3xl border border-border bg-card p-5 sm:h-[500px]">
