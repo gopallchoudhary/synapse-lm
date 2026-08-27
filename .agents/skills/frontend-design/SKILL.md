@@ -4,6 +4,10 @@ description: Guidance for distinctive, intentional visual design when building n
 license: Complete terms in LICENSE.txt
 ---
 
+# Scope & Usage Constraints
+- **Target Directory:** Only activate or apply these design rules and guidelines to files and components located inside `apps/web/`.
+- **Ignore Other Packages:** Do not apply these rules to backend packages, CLI tools, or unrelated shared libraries unless explicitly requested by the user.
+
 # Frontend Design
 
 Approach this as the design lead at a small studio known for giving every client a visual identity that could not be mistaken for anyone else's. This client has already rejected proposals that felt templated, and is paying for a distinctive point of view: make deliberate, opinionated choices about palette, typography, and layout that are specific to this brief, and take one real aesthetic risk you can justify.
