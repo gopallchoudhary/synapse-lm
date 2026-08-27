@@ -17,7 +17,7 @@ RUN apk add --no-cache python3 make g++ openssl \
 
 WORKDIR /app
 
-# Install workspace dependencies
+# Install workspace dependencies (manifests first for layer caching)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json apps/api/package.json
 COPY packages packages
@@ -27,6 +27,9 @@ RUN pnpm install --frozen-lockfile
 ARG DATABASE_URL
 ENV DATABASE_URL=$DATABASE_URL
 RUN pnpm --filter @repo/database generate
+
+# API source (copied after install so dependency layers stay cached)
+COPY apps/api apps/api
 
 # -------------------------------------------------------------------------
 # Runtime stage
@@ -42,7 +45,6 @@ ENV NODE_ENV=production
 
 # Monorepo source (raw TS is executed via tsx) + installed deps (+ tsx devDep)
 COPY --from=builder /app ./
-
 WORKDIR /app
 EXPOSE 8000
 
