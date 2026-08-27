@@ -6,6 +6,7 @@ services:
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=synapse-internal"
       # HTTP entrypoint with global redirect to HTTPS
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
@@ -17,6 +18,8 @@ services:
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=gopalchoudhary521@gmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      # Useful for debugging router/cert issues (remove once stable)
+      - "--log.level=INFO"
     ports:
       - "80:80"
       - "443:443"
@@ -44,6 +47,8 @@ services:
       - synapse-internal
     labels:
       - "traefik.enable=true"
+      # Explicit network for Traefik -> container traffic
+      - "traefik.docker.network=synapse-internal"
       # HTTPS router only (HTTP is redirected globally above)
       - "traefik.http.routers.nodejs.rule=Host(`synapsebackend.gopalchoudhary.dev`)"
       - "traefik.http.routers.nodejs.entrypoints=websecure"
@@ -60,8 +65,14 @@ networks:
 #   2. Open ports 80/443 in the security group
 #   3. Point DNS A record  synapsebackend.gopalchoudhary.dev -> EC2 public IP
 #   4. `git clone` this repo, `cd` into it
-#   5. `cp .env.example .env`  then  edit `.env` with real secrets
+#   5. `cp deploy/.env.production.example .env`  then  edit `.env` with real secrets
 #        (this file is excluded from git; do NOT commit it)
 #   6. `docker compose up -d`
 #   7. Subsequent deploys: `docker compose pull && docker compose up -d`
 #      (ran automatically by .github/workflows/deploy.yml on push to main)
+#
+# If Traefik serves "TRAEFIK DEFAULT CERT":
+#   - Both containers MUST be up and on the SAME network (check:
+#     `docker inspect <name> --format '{{json .NetworkSettings.Networks}}'`)
+#   - `docker logs synapse-traefik | grep -i nodejs`  -> router should be registered
+#   - `ls -la letsencrypt/`  -> acme.json must exist and grow (cert issued)
