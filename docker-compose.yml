@@ -14,12 +14,13 @@ services:
       - "--entrypoints.web.http.redirections.entryPoint.permanent=true"
       # HTTPS entrypoint
       - "--entrypoints.websecure.address=:443"
-      # Let's Encrypt via TLS challenge
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      # Let's Encrypt via HTTP challenge (port 80 confirmed reachable)
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.myresolver.acme.email=gopalchoudhary521@gmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-      # Useful for debugging router/cert issues (remove once stable)
-      - "--log.level=INFO"
+      # Debug while cert issuance is being sorted (revert to INFO once stable)
+      - "--log.level=DEBUG"
     ports:
       - "80:80"
       - "443:443"
