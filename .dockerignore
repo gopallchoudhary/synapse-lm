@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Local env files (secrets must NOT enter the image)
+.env
+.env.*
+!.env.example
+
+# Testing / builds / caches
+coverage
+.turbo
+.vercel
+.next
+dist
+build
+out
+
+# Git / tooling
+.git
+.gitignore
+
+# Project extras not needed at runtime
+ui-reference
+letsencrypt
+
+# Logs
+*.log

@@ -19,6 +19,8 @@ import { functions } from '@repo/jobs'
 import webhookRouter from "./clerk-webhook/route";
 import { chatRoutes } from "./stream-chat/route";
 import { sourceRoutes } from "./sources/route";
+
+const corsOrigins = env.CORS_ORIGIN.split(",").map((origin) => origin.trim());
 export const app = express();
 const openApiDocument = generateOpenApiDocument(serverRouter, {
 	title: "Synapse LM OpenAPI",
@@ -28,7 +30,7 @@ const openApiDocument = generateOpenApiDocument(serverRouter, {
 
 app.use(
 	cors({
-		origin: "http://localhost:3000",
+		origin: corsOrigins,
 		credentials: true,
 	}),
 );

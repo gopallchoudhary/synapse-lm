@@ -4,7 +4,7 @@ ui-reference
 node_modules
 .pnp
 .pnp.js
-
+ex.env
 # Local env files
 .env
 .env.local

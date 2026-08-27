@@ -144,11 +144,51 @@ Pipeline: upload (Multer → Cloudinary + `unpdf`) → chunk (`chunkPages`/`chun
 
 `ctx.userId` is always the **Clerk external ID**. It is stored only in `User.clerkId` and passed to Mem0/Clerk. All Prisma foreign keys use the internal `User.id` — services resolve `clerkId → id` internally. Client payloads never include `userId`; ownership is enforced via `workspaceService.getWorkspaceByIdAndUserId`.
 
-## Production
+## Deployment
 
-- `pnpm build` then `pnpm --filter @repo/api start` (`node dist/index.js`) — expects env vars injected by hosting (Vercel/Neon); no `.env` files are bundled.
-- Run `pnpm db:migrate` (or `prisma migrate deploy`) against the production database before first start.
-- Configure the same Clerk webhook URL for production.
+The API is shipped as a Docker image to **EC2** and served behind **Traefik** (HTTPS + Let's Encrypt). Continuous deployment runs from GitHub Actions: push to `main` (paths touching `apps/api/` or `packages/`) → build image → push `gopalchoudhary/synapse-lm:latest` to **Docker Hub** → SSH into EC2 → `docker compose pull && docker compose up -d`.
+
+### Artifacts
+
+| File | Purpose |
+|---|---|
+| `Dockerfile` | Multi-stage image: `pnpm install`, `prisma generate` (needs `DATABASE_URL` build arg), runtime runs via `tsx`, auto-runs `prisma migrate deploy` on start |
+| `.dockerignore` | Keeps secrets/build artifacts out of the image |
+| `docker-compose.yml` | `traefik` (80/443, TLS challenge) + `nodejs-server` (env_file `.env`) on shared `synapse-internal` network |
+| `.github/workflows/deploy.yml` | CI/CD: build → Docker Hub → SSH deploy |
+| `deploy/.env.production.example` | Template for the server-only `.env` (copied to `~/synapse-api/.env`) |
+
+### Production environment URLs
+
+Three values must be set to your live URL, in two places:
+
+| Variable | Where to set | Production value | Used by |
+|---|---|---|---|
+| `NEXT_PUBLIC_API_URL` | **Vercel** (web) env, build-time | `https://synapsebackend.gopalchoudhary.dev` | Browser: tRPC, streaming chat, PDF upload |
+| `BASE_URL` | **EC2** `~/synapse-api/.env` | `https://synapsebackend.gopalchoudhary.dev` | API: OpenAPI doc URL |
+| `CORS_ORIGIN` | **EC2** `~/synapse-api/.env` | your web origin, e.g. `https://synapse-lm.gopalchoudhary.dev` | API: allowed browser origins |
+
+- `NEXT_PUBLIC_API_URL` is inlined into the client bundle at `next build` — use the base domain (no `/trpc`); the web auto-appends/strips the path. Deploy the web **after** the API domain is live.
+- `BASE_URL` only affects `/openapi.json` and `/docs` absolute URLs — it does not affect routing.
+- If the web runs at multiple origins (e.g. a custom domain + Vercel), separate them with commas in `CORS_ORIGIN`.
+
+### One-time EC2 setup
+
+1. Install Docker Engine + Compose plugin.
+2. Open ports `80`/`443` in the security group.
+3. Point DNS `A` record `synapsebackend.gopalchoudhary.dev` → EC2 public IP.
+4. Clone the repo, `cp deploy/.env.production.example .env`, fill real secrets.
+5. `docker compose up -d` (Traefik auto-issues the Let's Encrypt certificate).
+
+### GitHub secrets required
+
+`DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `SSH_HOST`, `SSH_USER`, `SSH_KEY`, `DATABASE_URL` (build arg for `prisma generate`).
+
+### Production `.env` (server)
+
+See `deploy/.env.production.example`. Key changes vs dev: `NODE_ENV=production`, `BASE_URL`/`CORS_ORIGIN` to live URLs, and use Inngest Cloud (`INNGEST_DEV` unset, `INNGEST_EVENT_KEY` set) unless you keep the dev Inngest CLI.
+
+Migrations run automatically at container start (`prisma migrate deploy`); a manual `pnpm db:migrate` (`prisma migrate dev`) is only for development.
 
 ## Troubleshooting
 
