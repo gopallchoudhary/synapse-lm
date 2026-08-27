@@ -15,7 +15,7 @@ services:
       - "--entrypoints.websecure.address=:443"
       # Let's Encrypt via TLS challenge
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=gopal@gopalchoudhary.dev"
+      - "--certificatesresolvers.myresolver.acme.email=gopalchoudhary521@gmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
