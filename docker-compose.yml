@@ -36,6 +36,9 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    # Direct deployment port mapping (exposing port 8000 to host)
+    ports:
+      - "8000:8000"
     # depends_on:
     #   - traefik
     # healthcheck:
