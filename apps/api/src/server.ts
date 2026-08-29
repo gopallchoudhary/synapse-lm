@@ -39,7 +39,7 @@ app.use("/api/webhooks", webhookRouter)
 app.use(cookieParser());
 app.use(clerkMiddleware())
 app.use(express.json());
-app.use("/api/inngest", serve({ client: inngest, functions }))
+app.use("/api/inngest", serve({ client: inngest, functions, serveOrigin: 'https://synapsebackend.gopalchoudhary.dev', servePath: '/api/inngest', streaming: true }))
 
 app.get("/", (req, res) => {
 	return res.json({ message: "Synapse LLM is up and running" });
