@@ -36,8 +36,7 @@ COPY packages/web-search/package.json packages/web-search/package.json
 RUN pnpm install --frozen-lockfile
 
 # 2. Source code (copied after install so dependency layers stay cached)
-COPY packages packages
-COPY apps/api apps/api
+COPY . .
 
 # 3. Prisma client generation (dummy URL satisfies env.ts validation; no DB connection needed at build time)
 ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
@@ -63,5 +62,5 @@ COPY --from=builder /app ./
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
     CMD node -e "fetch('http://127.0.0.1:8000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
 
-# Auto-run Prisma migrations on start, then exec tsx so process directly receives POSIX signals (SIGTERM)
-CMD ["sh", "-c", "pnpm --filter @repo/database exec prisma migrate deploy && exec pnpm --filter @repo/api exec tsx ./src/index.ts"]
+# Auto-run Prisma migrations on start, then exec api start script directly
+CMD ["sh", "-c", "pnpm --filter @repo/database exec prisma migrate deploy && exec pnpm --filter @repo/api start"]
