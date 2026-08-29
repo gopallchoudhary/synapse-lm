@@ -22,6 +22,7 @@ out
 .gitignore
 
 # Project extras not needed at runtime
+apps/web
 ui-reference
 letsencrypt
 

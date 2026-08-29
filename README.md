@@ -152,8 +152,8 @@ The API is shipped as a Docker image to **EC2** and served behind **Traefik** (H
 
 | File | Purpose |
 |---|---|
-| `Dockerfile` | Multi-stage image: `pnpm install`, `prisma generate` (needs `DATABASE_URL` build arg), runtime runs via `tsx`, auto-runs `prisma migrate deploy` on start |
-| `.dockerignore` | Keeps secrets/build artifacts out of the image |
+| `Dockerfile` | Multi-stage image: cached `pnpm install`, `prisma generate` with placeholder env, runtime runs via `tsx`, auto-runs `prisma migrate deploy` on start |
+| `.dockerignore` | Keeps secrets/build artifacts and web app out of the API image |
 | `docker-compose.yml` | `traefik` (80/443, TLS challenge) + `nodejs-server` (env_file `.env`) on shared `synapse-internal` network |
 | `.github/workflows/deploy.yml` | CI/CD: build → Docker Hub → SSH deploy |
 | `deploy/.env.production.example` | Template for the server-only `.env` (copied to `~/synapse-api/.env`) |
@@ -178,11 +178,12 @@ Three values must be set to your live URL, in two places:
 2. Open ports `80`/`443` in the security group.
 3. Point DNS `A` record `synapsebackend.gopalchoudhary.dev` → EC2 public IP.
 4. Clone the repo, `cp deploy/.env.production.example .env`, fill real secrets.
-5. `docker compose up -d` (Traefik auto-issues the Let's Encrypt certificate).
+5. Ensure `letsencrypt/acme.json` has `600` permissions (`mkdir -p letsencrypt && touch letsencrypt/acme.json && chmod 600 letsencrypt/acme.json`).
+6. `docker compose up -d` (Traefik auto-issues the Let's Encrypt certificate).
 
 ### GitHub secrets required
 
-`DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `SSH_HOST`, `SSH_USER`, `SSH_KEY`, `DATABASE_URL` (build arg for `prisma generate`).
+`DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `SSH_HOST`, `SSH_USER`, `SSH_KEY`. (Note: `DATABASE_URL` is only needed in `.env` on EC2, not as a GitHub Actions secret).
 
 ### Production `.env` (server)
 

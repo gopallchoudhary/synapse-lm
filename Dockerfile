@@ -2,10 +2,6 @@
 #
 # Synapse LM — API runtime image.
 # Runs the Express API from the pnpm monorepo via tsx (raw TS, no bundler).
-#
-# Prisma generate needs DATABASE_URL at build time (prisma.config.ts loads
-# packages/database/env.ts which requires it). Pass it as a build arg:
-#   docker build --build-arg DATABASE_URL="$DATABASE_URL" -t gopalchoudhary/synapse-lm .
 
 # -------------------------------------------------------------------------
 # Dependencies + build stage
@@ -17,19 +13,35 @@ RUN apk add --no-cache python3 make g++ openssl \
 
 WORKDIR /app
 
-# Install workspace dependencies (manifests first for layer caching)
+# 1. Install workspace dependencies (manifests first for layer caching)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json apps/api/package.json
-COPY packages packages
+
+COPY packages/ai/package.json packages/ai/package.json
+COPY packages/database/package.json packages/database/package.json
+COPY packages/errors/package.json packages/errors/package.json
+COPY packages/eslint-config/package.json packages/eslint-config/package.json
+COPY packages/jobs/package.json packages/jobs/package.json
+COPY packages/jobs-client/package.json packages/jobs-client/package.json
+COPY packages/logger/package.json packages/logger/package.json
+COPY packages/memory/package.json packages/memory/package.json
+COPY packages/rag/package.json packages/rag/package.json
+COPY packages/services/package.json packages/services/package.json
+COPY packages/storage/package.json packages/storage/package.json
+COPY packages/trpc/package.json packages/trpc/package.json
+COPY packages/typescript-config/package.json packages/typescript-config/package.json
+COPY packages/vector-store/package.json packages/vector-store/package.json
+COPY packages/web-search/package.json packages/web-search/package.json
+
 RUN pnpm install --frozen-lockfile
 
-# Prisma client generation (no DB connection needed, but env.ts requires the URL)
-ARG DATABASE_URL
-ENV DATABASE_URL=$DATABASE_URL
-RUN pnpm --filter @repo/database generate
-
-# API source (copied after install so dependency layers stay cached)
+# 2. Source code (copied after install so dependency layers stay cached)
+COPY packages packages
 COPY apps/api apps/api
+
+# 3. Prisma client generation (dummy URL satisfies env.ts validation; no DB connection needed at build time)
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
+RUN pnpm --filter @repo/database generate
 
 # -------------------------------------------------------------------------
 # Runtime stage
@@ -42,14 +54,14 @@ RUN apk add --no-cache openssl \
 WORKDIR /app
 
 ENV NODE_ENV=production
+EXPOSE 8000
 
 # Monorepo source (raw TS is executed via tsx) + installed deps (+ tsx devDep)
 COPY --from=builder /app ./
-WORKDIR /app
-EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+# Healthcheck with start-period allowing time for auto-migrations
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
     CMD node -e "fetch('http://127.0.0.1:8000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
 
-# Auto-run Prisma migrations on start, then boot the API
-CMD ["sh", "-c", "pnpm --filter @repo/database exec prisma migrate deploy && pnpm --filter @repo/api exec tsx ./src/index.ts"]
+# Auto-run Prisma migrations on start, then exec tsx so process directly receives POSIX signals (SIGTERM)
+CMD ["sh", "-c", "pnpm --filter @repo/database exec prisma migrate deploy && exec pnpm --filter @repo/api exec tsx ./src/index.ts"]

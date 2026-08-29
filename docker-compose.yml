@@ -1,34 +1,38 @@
 services:
-  # traefik:
-  #   image: traefik:latest
-  #   container_name: synapse-traefik
-  #   restart: unless-stopped
-  #   command:
-  #     - "--providers.docker=true"
-  #     - "--providers.docker.exposedbydefault=false"
-  #     - "--providers.docker.network=synapse-internal"
-  #     # HTTP entrypoint with global redirect to HTTPS
-  #     - "--entrypoints.web.address=:80"
-  #     - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-  #     - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-  #     - "--entrypoints.web.http.redirections.entryPoint.permanent=true"
-  #     # HTTPS entrypoint
-  #     - "--entrypoints.websecure.address=:443"
-  #     # Let's Encrypt via HTTP challenge (port 80 confirmed reachable)
-  #     - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-  #     - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-  #     - "--certificatesresolvers.myresolver.acme.email=gopalchoudhary521@gmail.com"
-  #     - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-  #     # Debug while cert issuance is being sorted (revert to INFO once stable)
-  #     - "--log.level=DEBUG"
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock:ro
-  #     - ./letsencrypt:/letsencrypt
-  #   networks:
-  #     - synapse-internal
+  traefik:
+    image: traefik:v3.3
+    container_name: synapse-traefik
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=synapse-internal"
+      # HTTP entrypoint with global redirect to HTTPS
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entryPoint.permanent=true"
+      # HTTPS entrypoint
+      - "--entrypoints.websecure.address=:443"
+      # Let's Encrypt via HTTP challenge (port 80 must be open in AWS SG)
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=gopalchoudhary521@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - synapse-internal
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   nodejs-server:
     image: gopalchoudhary/synapse-lm:latest
@@ -36,47 +40,44 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    # Direct deployment port mapping (exposing port 8000 to host)
-    ports:
-      - "8000:8000"
-    # depends_on:
-    #   - traefik
-    # healthcheck:
-    #   test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
-    #   interval: 30s
-    #   timeout: 5s
-    #   start_period: 20s
-    #   retries: 3
-    # networks:
-    #   - synapse-internal
-    # labels:
-    #   - "traefik.enable=true"
-    #   # Explicit network for Traefik -> container traffic
-    #   - "traefik.docker.network=synapse-internal"
-    #   # HTTPS router only (HTTP is redirected globally above)
-    #   - "traefik.http.routers.nodejs.rule=Host(`synapsebackend.gopalchoudhary.dev`)"
-    #   - "traefik.http.routers.nodejs.entrypoints=websecure"
-    #   - "traefik.http.routers.nodejs.tls.certresolver=myresolver"
-    #   - "traefik.http.services.nodejs.loadbalancer.server.port=8000"
+    expose:
+      - "8000"
+    depends_on:
+      - traefik
+    networks:
+      - synapse-internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=synapse-internal"
+      - "traefik.http.routers.nodejs.rule=Host(`synapsebackend.gopalchoudhary.dev`)"
+      - "traefik.http.routers.nodejs.entrypoints=websecure"
+      - "traefik.http.routers.nodejs.tls.certresolver=myresolver"
+      - "traefik.http.services.nodejs.loadbalancer.server.port=8000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-# networks:
-#   synapse-internal:
-#     driver: bridge
-#     name: synapse-internal
+networks:
+  synapse-internal:
+    driver: bridge
+    name: synapse-internal
 
 # Server-side setup (one-time, on EC2):
 #   1. Install Docker Engine + Compose plugin
-#   2. Open ports 80/443 in the security group
-#   3. Point DNS A record  synapsebackend.gopalchoudhary.dev -> EC2 public IP
-#   4. `git clone` this repo, `cd` into it
-#   5. `cp deploy/.env.production.example .env`  then  edit `.env` with real secrets
-#        (this file is excluded from git; do NOT commit it)
-#   6. `docker compose up -d`
-#   7. Subsequent deploys: `docker compose pull && docker compose up -d`
-#      (ran automatically by .github/workflows/deploy.yml on push to main)
+#   2. Open ports 80/443 in the EC2 security group
+#   3. Point DNS A record synapsebackend.gopalchoudhary.dev -> EC2 public IP
+#   4. `git clone` this repo or let GitHub Actions scp compose & env template
+#   5. `cp deploy/.env.production.example .env` then edit `.env` with real secrets
+#   6. Ensure acme.json exists with 600 permissions:
+#      mkdir -p letsencrypt && touch letsencrypt/acme.json && chmod 600 letsencrypt/acme.json
+#   7. `docker compose up -d`
+#   8. Subsequent deploys: `docker compose pull && docker compose up -d`
+#      (run automatically by .github/workflows/deploy.yml on push to main)
 #
 # If Traefik serves "TRAEFIK DEFAULT CERT":
-#   - Both containers MUST be up and on the SAME network (check:
-#     `docker inspect <name> --format '{{json .NetworkSettings.Networks}}'`)
-#   - `docker logs synapse-traefik | grep -i nodejs`  -> router should be registered
-#   - `ls -la letsencrypt/`  -> acme.json must exist and grow (cert issued)
+#   - Ensure letsencrypt/acme.json has chmod 600 permissions
+#   - Both containers MUST be up and on the SAME network (synapse-internal)
+#   - `docker logs synapse-traefik | grep -i nodejs` -> router should be registered
+#   - `cat letsencrypt/acme.json` -> cert should be present inside
