@@ -12,6 +12,9 @@ ex.env
 .env.test.local
 .env.production.local
 
+#graphify
+graphify-out/
+
 # Testing
 coverage
 
