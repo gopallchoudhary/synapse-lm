@@ -12,7 +12,7 @@ export default function AuthLayout({
             <span className="grid size-9 place-items-center rounded-xl bg-white text-sm font-black text-zinc-950">
               S
             </span>
-            Synapse LM
+            Studybook LM
           </div>
 
           <div className="relative max-w-md">

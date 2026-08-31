@@ -190,7 +190,7 @@ export function WorkspaceDashboard() {
             <span className="grid size-8 place-items-center rounded-xl bg-foreground text-sm text-background">
               S
             </span>
-            <span className="hidden sm:inline">Synapse LM</span>
+            <span className="hidden sm:inline">Studybook LM</span>
           </Link>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-muted-foreground md:inline">

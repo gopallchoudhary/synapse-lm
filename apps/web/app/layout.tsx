@@ -13,7 +13,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Synapse LM",
+  title: "Studybook LM",
   description: "Your AI-powered research and learning companion",
 };
 

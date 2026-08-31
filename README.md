@@ -1,4 +1,4 @@
-# Synapse LM
+# Studybook LM
 
 NotebookLM-inspired learning workspace. Create notebooks, add PDFs / websites / YouTube videos / text, and chat with your sources via RAG. Generate summaries, takeaways, flashcards, quizzes, mind-maps, and reports. Everything is grounded in what you provide.
 

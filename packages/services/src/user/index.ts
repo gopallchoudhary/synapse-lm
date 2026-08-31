@@ -29,7 +29,7 @@ class UserService {
 
 		if (!email) {
 			throw new ValidationError(
-				"Your Clerk account must have an email address before using Synapse LM.",
+				"Your Clerk account must have an email address before using Studybook LM.",
 			);
 		}
 

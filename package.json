@@ -1,5 +1,5 @@
 {
-  "name": "synapse-lm",
+  "name": "studybook-lm",
   "private": true,
   "scripts": {
     "build": "turbo run build",
