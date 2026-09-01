@@ -1,12 +1,5 @@
-import { ThemeToggle } from "~/components/theme-toggle";
+import { LandingPageView } from "~/features/home";
 
 export default function Home() {
-	return (
-		<div>
-			<h1>Studybook LM</h1>
-			<div>
-				<ThemeToggle />
-			</div>
-		</div>
-	);
+	return <LandingPageView />;
 }
