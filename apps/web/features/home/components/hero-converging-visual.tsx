@@ -5,357 +5,482 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   FileText,
   Globe,
-  ScrollText,
+  Video,
+  FileCode,
   Table2,
   Sparkles,
-  ArrowUpRight,
   CheckCircle2,
+  Cpu,
   Layers,
+  ArrowRight,
+  BookOpen,
+  HelpCircle,
+  Network,
+  MessageSquareCode,
+  RotateCw,
 } from "lucide-react";
 
-interface SourceItem {
-  id: number;
-  title: string;
+interface SourceNode {
+  id: string;
+  name: string;
   type: string;
   icon: React.ElementType;
-  meta: string;
-  iconBg: string;
-  iconColor: string;
-  glowColor: string;
+  color: string;
   borderColor: string;
-  snippet: string;
-  sourceUrl: string;
+  bgLight: string;
+  duration: number;
 }
 
-const SOURCES: SourceItem[] = [
+const SOURCES: SourceNode[] = [
   {
-    id: 1,
-    title: "Quantum_Neural_Architectures.pdf",
+    id: "pdf",
+    name: "Research.pdf",
     type: "PDF Document",
     icon: FileText,
-    meta: "32 pages • 14 chunks embedded",
-    iconBg: "bg-[#2a9d99]/12",
-    iconColor: "text-[#2a9d99]",
-    glowColor: "rgba(42, 157, 153, 0.4)",
-    borderColor: "border-[#2a9d99]/60",
-    snippet: "Section 3.2: Dense vector retrieval with cosine similarity guarantees bounded context window usage across partitioned workspaces.",
-    sourceUrl: "Cloudinary / unpdf parsed",
+    color: "text-[#2a9d99]",
+    borderColor: "border-[#2a9d99]/50",
+    bgLight: "bg-[#2a9d99]/10",
+    duration: 3.8,
   },
   {
-    id: 2,
-    title: "Stanford_CS224N_Lecture.txt",
-    type: "YouTube Transcript",
-    icon: ScrollText,
-    meta: "4,200 words • 01:14:20 timestamp",
-    iconBg: "bg-[#ff64c8]/12",
-    iconColor: "text-[#ff64c8]",
-    glowColor: "rgba(255, 100, 200, 0.4)",
-    borderColor: "border-[#ff64c8]/60",
-    snippet: "Prof. Manning: Multi-hop verification and source re-ranking reduce hallucination rates by up to 82% compared to ungrounded generation.",
-    sourceUrl: "youtube-transcript pipeline",
+    id: "youtube",
+    name: "Lecture.mp4",
+    type: "YouTube Video",
+    icon: Video,
+    color: "text-[#ff64c8]",
+    borderColor: "border-[#ff64c8]/50",
+    bgLight: "bg-[#ff64c8]/10",
+    duration: 4.5,
   },
   {
-    id: 3,
-    title: "ArXiv_RAG_Advancements_2026.html",
+    id: "web",
+    name: "Article.html",
     type: "Web Research",
     icon: Globe,
-    meta: "Firecrawl scraped • 18 mins read",
-    iconBg: "bg-[#62aef0]/15",
-    iconColor: "text-[#0075de]",
-    glowColor: "rgba(98, 174, 240, 0.4)",
+    color: "text-[#0075de]",
     borderColor: "border-[#62aef0]/60",
-    snippet: "Long-term episodic memory buffers preserve conversational entity graphs across sessions without context window bloat.",
-    sourceUrl: "https://arxiv.org/abs/2602.04918",
+    bgLight: "bg-[#62aef0]/12",
+    duration: 3.2,
   },
   {
-    id: 4,
-    title: "Benchmark_Retrieval_Metrics.csv",
-    type: "Tabular Data",
+    id: "notes",
+    name: "Notes.md",
+    type: "Markdown Note",
+    icon: FileCode,
+    color: "text-[#8b5cf6]",
+    borderColor: "border-[#d6b6f6]/60",
+    bgLight: "bg-[#d6b6f6]/15",
+    duration: 4.0,
+  },
+  {
+    id: "data",
+    name: "Metrics.csv",
+    type: "Data Sheet",
     icon: Table2,
-    meta: "1,250 rows • 94.8% precision",
-    iconBg: "bg-[#dd5b00]/12",
-    iconColor: "text-[#dd5b00]",
-    glowColor: "rgba(221, 91, 0, 0.4)",
-    borderColor: "border-[#dd5b00]/60",
-    snippet: "Inngest async queue workers process 250 source tokens/sec with automated polling and real-time artifact compilation.",
-    sourceUrl: "Postgres + Pinecone stats",
+    color: "text-[#dd5b00]",
+    borderColor: "border-[#dd5b00]/50",
+    bgLight: "bg-[#dd5b00]/10",
+    duration: 3.5,
   },
 ];
 
+interface ArtifactCard {
+  id: string;
+  title: string;
+  type: string;
+  icon: React.ElementType;
+  badgeColor: string;
+  textColor: string;
+  description: string;
+  previewElement: React.ReactNode;
+}
+
 export function HeroConvergingVisual() {
-  const [activeId, setActiveId] = useState<number | null>(1);
+  const [activeSourceId, setActiveSourceId] = useState<string | null>(null);
+  const [activeArtifactId, setActiveArtifactId] = useState<string | null>(null);
+  const [engineHovered, setEngineHovered] = useState(false);
 
   return (
     <div className="relative mx-auto w-full max-w-5xl">
-      {/* Main Container Card - white surface on warm canvas-soft */}
-      <div className="shadow-level-1 relative rounded-2xl border border-[#e6e6e6] bg-white p-5 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-8">
+      {/* Outer Card Container with DESIGN.md surface styling */}
+      <div className="shadow-level-1 relative overflow-hidden rounded-2xl border border-[#e6e6e6] bg-white p-5 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-7">
         
-        {/* Top bar indicator */}
+        {/* Top Header Bar */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-[#e6e6e6] pb-4 dark:border-zinc-800">
           <div className="flex items-center gap-2">
             <span className="flex size-2 rounded-full bg-[#1aae39] animate-pulse" />
             <span className="type-eyebrow uppercase tracking-wider text-[#615d59] dark:text-zinc-400">
-              Live Synthesis Engine
+              Live Synthesis Engine Pipeline
             </span>
           </div>
-          <div className="type-caption flex items-center gap-1.5 rounded-md border border-[#e6e6e6] bg-[#f6f5f4] px-2.5 py-1 text-xs text-[#31302e] dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-            <Layers className="size-3 text-[#0075de]" />
-            <span>4 Sources Connected</span>
+
+          <div className="type-caption flex items-center gap-2 text-xs text-[#615d59] dark:text-zinc-400">
+            <span className="hidden sm:inline">Messy Multi-modal Sources</span>
+            <ArrowRight className="size-3 text-[#a39e98]" />
+            <span className="font-semibold text-[#0075de]">Neural Engine</span>
+            <ArrowRight className="size-3 text-[#a39e98]" />
+            <span className="hidden sm:inline font-semibold text-[#1aae39]">Clean Artifacts</span>
           </div>
         </div>
 
-        {/* Layout: Left Sources, Center Animated SVG Flow, Right Answer Card */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-center">
+        {/* Visual Workflow Canvas */}
+        <div className="relative grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center min-h-[460px]">
           
-          {/* Left Column: 4 Source Document Cards (5 cols) */}
-          <div className="flex flex-col gap-2.5 lg:col-span-5">
-            <p className="type-eyebrow px-1 uppercase tracking-widest text-[#a39e98] dark:text-zinc-500">
-              Connected Notebook Sources
-            </p>
+          {/* LEFT: 5 Floating Raw Source Badges (3 cols) */}
+          <div className="flex flex-row flex-wrap justify-center gap-2.5 lg:col-span-3 lg:flex-col lg:justify-between lg:gap-3">
+            <div className="w-full text-center lg:text-left mb-1">
+              <span className="type-eyebrow uppercase tracking-widest text-[#a39e98] dark:text-zinc-500">
+                Raw Input Sources
+              </span>
+            </div>
 
             {SOURCES.map((source, index) => {
               const Icon = source.icon;
-              const isActive = activeId === source.id;
+              const isHighlighted =
+                activeSourceId === source.id ||
+                engineHovered ||
+                (activeArtifactId !== null && index < 3);
 
               return (
                 <motion.div
                   key={source.id}
-                  initial={{ opacity: 0, x: -16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.08 * index, duration: 0.35 }}
-                  onMouseEnter={() => setActiveId(source.id)}
-                  onClick={() => setActiveId(source.id)}
-                  className={`group relative cursor-pointer rounded-xl border p-3 transition-all duration-200 ${
-                    isActive
-                      ? `bg-white shadow-level-1 ring-1 ring-[#0075de]/40 dark:bg-zinc-800 ${source.borderColor}`
-                      : "border-[#e6e6e6] bg-white hover:border-[#a39e98] dark:border-zinc-800 dark:bg-zinc-900/80 dark:hover:bg-zinc-800/60"
+                  animate={{
+                    y: [0, -5, 0],
+                    x: [0, index % 2 === 0 ? 2 : -2, 0],
+                  }}
+                  transition={{
+                    duration: source.duration,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  onMouseEnter={() => setActiveSourceId(source.id)}
+                  onMouseLeave={() => setActiveSourceId(null)}
+                  className={`group relative flex cursor-pointer items-center gap-2.5 rounded-xl border p-2.5 transition-all duration-200 ${
+                    isHighlighted
+                      ? `bg-white shadow-level-1 ring-2 ring-[#0075de]/30 dark:bg-zinc-800 ${source.borderColor}`
+                      : "border-[#e6e6e6] bg-[#f6f5f4]/80 hover:border-[#a39e98] hover:bg-white dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:bg-zinc-800"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className={`grid size-8 shrink-0 place-items-center rounded-lg ${source.iconBg} ${source.iconColor}`}
-                      >
-                        <Icon className="size-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <h4 className="type-body-sm truncate font-semibold text-[#000000] dark:text-zinc-100">
-                            {source.title}
-                          </h4>
-                          <span className="type-eyebrow grid size-4 shrink-0 place-items-center rounded-xs bg-[#f6f5f4] text-[10px] font-bold text-[#31302e] dark:bg-zinc-700 dark:text-zinc-200">
-                            [{source.id}]
-                          </span>
-                        </div>
-                        <p className="type-caption text-xs text-[#615d59] dark:text-zinc-400">
-                          {source.meta}
-                        </p>
-                      </div>
-                    </div>
-
-                    <ArrowUpRight
-                      className={`size-3.5 transition-transform duration-200 ${
-                        isActive
-                          ? "translate-x-0.5 -translate-y-0.5 text-[#0075de]"
-                          : "text-[#a39e98] opacity-0 group-hover:opacity-100"
-                      }`}
-                    />
+                  <div
+                    className={`grid size-7 shrink-0 place-items-center rounded-md ${source.bgLight} ${source.color}`}
+                  >
+                    <Icon className="size-3.5" />
                   </div>
+                  <div className="min-w-0 pr-1">
+                    <p className="type-body-sm truncate font-semibold text-[#000000] dark:text-zinc-100">
+                      {source.name}
+                    </p>
+                    <p className="type-caption text-[11px] text-[#615d59] dark:text-zinc-400">
+                      {source.type}
+                    </p>
+                  </div>
+
+                  {/* Flow connector dot on right edge */}
+                  <div className="hidden lg:block absolute -right-1.5 top-1/2 -translate-y-1/2 size-2 rounded-full border border-white bg-[#0075de] dark:border-zinc-900" />
                 </motion.div>
               );
             })}
           </div>
 
-          {/* Center Column: Animated Flow Lines (2 cols) */}
-          <div className="relative hidden h-72 w-full items-center justify-center lg:col-span-2 lg:flex">
+          {/* CENTER: Converging & Diverging SVG Motion Curves (6 cols on Desktop) */}
+          <div className="relative flex flex-col items-center justify-center lg:col-span-4 h-full py-4">
+            
+            {/* SVG Connecting Flow Canvas */}
             <svg
-              className="h-full w-full overflow-visible"
-              viewBox="0 0 100 240"
+              className="absolute inset-0 hidden lg:block h-full w-full overflow-visible pointer-events-none"
+              viewBox="0 0 240 380"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
               <defs>
-                <linearGradient id="gradient-line-active" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#0075de" stopOpacity="0.9" />
-                  <stop offset="100%" stopColor="#005bab" stopOpacity="1" />
+                <linearGradient id="stream-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#0075de" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#2a9d99" stopOpacity="1" />
+                </linearGradient>
+                <linearGradient id="beam-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#0075de" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#1aae39" stopOpacity="0.8" />
                 </linearGradient>
               </defs>
 
-              {/* Path 1: Source 1 to Center */}
+              {/* Ingress Paths: Left Sources to Center Hub */}
               <motion.path
-                d="M 5 30 C 50 30, 50 120, 95 120"
-                stroke={activeId === 1 ? "url(#gradient-line-active)" : "#e6e6e6"}
-                strokeWidth={activeId === 1 ? "2.5" : "1"}
-                strokeDasharray={activeId === 1 ? "none" : "3 3"}
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.6, ease: "easeInOut" }}
+                d="M 10 40 C 70 40, 80 190, 115 190"
+                stroke={activeSourceId === "pdf" || engineHovered ? "#0075de" : "#e6e6e6"}
+                strokeWidth={activeSourceId === "pdf" || engineHovered ? "2.5" : "1.5"}
+                strokeDasharray="4 4"
+                className="transition-colors duration-200 dark:stroke-zinc-700"
+              />
+              <motion.path
+                d="M 10 115 C 70 115, 80 190, 115 190"
+                stroke={activeSourceId === "youtube" || engineHovered ? "#ff64c8" : "#e6e6e6"}
+                strokeWidth={activeSourceId === "youtube" || engineHovered ? "2.5" : "1.5"}
+                strokeDasharray="4 4"
+                className="transition-colors duration-200 dark:stroke-zinc-700"
+              />
+              <motion.path
+                d="M 10 190 C 70 190, 80 190, 115 190"
+                stroke={activeSourceId === "web" || engineHovered ? "#0075de" : "#e6e6e6"}
+                strokeWidth={activeSourceId === "web" || engineHovered ? "2.5" : "1.5"}
+                strokeDasharray="4 4"
+                className="transition-colors duration-200 dark:stroke-zinc-700"
+              />
+              <motion.path
+                d="M 10 265 C 70 265, 80 190, 115 190"
+                stroke={activeSourceId === "notes" || engineHovered ? "#8b5cf6" : "#e6e6e6"}
+                strokeWidth={activeSourceId === "notes" || engineHovered ? "2.5" : "1.5"}
+                strokeDasharray="4 4"
+                className="transition-colors duration-200 dark:stroke-zinc-700"
+              />
+              <motion.path
+                d="M 10 340 C 70 340, 80 190, 115 190"
+                stroke={activeSourceId === "data" || engineHovered ? "#dd5b00" : "#e6e6e6"}
+                strokeWidth={activeSourceId === "data" || engineHovered ? "2.5" : "1.5"}
+                strokeDasharray="4 4"
+                className="transition-colors duration-200 dark:stroke-zinc-700"
               />
 
-              {/* Path 2: Source 2 to Center */}
+              {/* Egress Paths: Center Hub to Right Artifacts */}
               <motion.path
-                d="M 5 90 C 50 90, 50 120, 95 120"
-                stroke={activeId === 2 ? "url(#gradient-line-active)" : "#e6e6e6"}
-                strokeWidth={activeId === 2 ? "2.5" : "1"}
-                strokeDasharray={activeId === 2 ? "none" : "3 3"}
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.6, delay: 0.1, ease: "easeInOut" }}
+                d="M 125 190 C 160 190, 170 50, 230 50"
+                stroke={activeArtifactId === "chat" || engineHovered ? "#0075de" : "#e6e6e6"}
+                strokeWidth={activeArtifactId === "chat" || engineHovered ? "2.5" : "1.5"}
+                strokeDasharray="4 4"
+                className="transition-colors duration-200 dark:stroke-zinc-700"
+              />
+              <motion.path
+                d="M 125 190 C 160 190, 170 145, 230 145"
+                stroke={activeArtifactId === "flashcard" || engineHovered ? "#ff64c8" : "#e6e6e6"}
+                strokeWidth={activeArtifactId === "flashcard" || engineHovered ? "2.5" : "1.5"}
+                strokeDasharray="4 4"
+                className="transition-colors duration-200 dark:stroke-zinc-700"
+              />
+              <motion.path
+                d="M 125 190 C 160 190, 170 240, 230 240"
+                stroke={activeArtifactId === "quiz" || engineHovered ? "#1aae39" : "#e6e6e6"}
+                strokeWidth={activeArtifactId === "quiz" || engineHovered ? "2.5" : "1.5"}
+                strokeDasharray="4 4"
+                className="transition-colors duration-200 dark:stroke-zinc-700"
+              />
+              <motion.path
+                d="M 125 190 C 160 190, 170 330, 230 330"
+                stroke={activeArtifactId === "mindmap" || engineHovered ? "#8b5cf6" : "#e6e6e6"}
+                strokeWidth={activeArtifactId === "mindmap" || engineHovered ? "2.5" : "1.5"}
+                strokeDasharray="4 4"
+                className="transition-colors duration-200 dark:stroke-zinc-700"
               />
 
-              {/* Path 3: Source 3 to Center */}
-              <motion.path
-                d="M 5 150 C 50 150, 50 120, 95 120"
-                stroke={activeId === 3 ? "url(#gradient-line-active)" : "#e6e6e6"}
-                strokeWidth={activeId === 3 ? "2.5" : "1"}
-                strokeDasharray={activeId === 3 ? "none" : "3 3"}
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.6, delay: 0.2, ease: "easeInOut" }}
-              />
-
-              {/* Path 4: Source 4 to Center */}
-              <motion.path
-                d="M 5 210 C 50 210, 50 120, 95 120"
-                stroke={activeId === 4 ? "url(#gradient-line-active)" : "#e6e6e6"}
-                strokeWidth={activeId === 4 ? "2.5" : "1"}
-                strokeDasharray={activeId === 4 ? "none" : "3 3"}
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.6, delay: 0.3, ease: "easeInOut" }}
-              />
-
-              {/* Center converging hub */}
+              {/* Animated Light Flow Particle along stream */}
               <motion.circle
-                cx="95"
-                cy="120"
-                r="4.5"
+                r="3.5"
                 fill="#0075de"
-                initial={{ scale: 0 }}
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 2.2 }}
+                animate={{
+                  cx: [15, 115, 230],
+                  cy: [115, 190, 50],
+                  opacity: [0, 1, 0],
+                }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 2.4,
+                  ease: "easeInOut",
+                }}
+              />
+              <motion.circle
+                r="3.5"
+                fill="#1aae39"
+                animate={{
+                  cx: [15, 115, 230],
+                  cy: [265, 190, 240],
+                  opacity: [0, 1, 0],
+                }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 2.8,
+                  delay: 0.8,
+                  ease: "easeInOut",
+                }}
               />
             </svg>
-          </div>
 
-          {/* Right Column: Synthesized Answer Card with Citations (5 cols) */}
-          <div className="flex flex-col lg:col-span-5">
-            <p className="type-eyebrow px-1 uppercase tracking-widest text-[#a39e98] dark:text-zinc-500">
-              Grounded AI Response
-            </p>
-
+            {/* Central Synthesis Engine Card */}
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.4 }}
-              className="shadow-level-1 mt-2 rounded-xl border border-[#e6e6e6] bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800"
+              whileHover={{ scale: 1.03 }}
+              onMouseEnter={() => setEngineHovered(true)}
+              onMouseLeave={() => setEngineHovered(false)}
+              className="relative z-10 flex flex-col items-center justify-center rounded-2xl border-2 border-[#0075de]/30 bg-white p-4 shadow-level-2 text-center dark:border-sky-500/40 dark:bg-zinc-900 max-w-[200px]"
             >
-              {/* Question header in title style */}
-              <div className="flex items-center gap-2 rounded-md bg-[#f6f5f4] px-3 py-2 text-xs font-semibold text-[#000000] dark:bg-zinc-900/80 dark:text-zinc-200">
-                <Sparkles className="size-3.5 shrink-0 text-[#0075de]" />
-                <span className="type-body-sm font-semibold truncate">"How do vector embeddings ground responses without hallucination?"</span>
+              {/* Animated Pulsing Core Aura */}
+              <div className="relative mb-2 grid size-12 place-items-center rounded-xl bg-gradient-to-br from-[#0075de]/15 via-sky-400/10 to-transparent">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 12, ease: "linear" }}
+                  className="absolute inset-0 rounded-xl border border-dashed border-[#0075de]/40"
+                />
+                <Cpu className="size-6 text-[#0075de] animate-pulse" />
               </div>
 
-              {/* Synthesized answer text with citations */}
-              <div className="type-body-sm mt-3.5 space-y-2.5 text-[#31302e] dark:text-zinc-300">
-                <p>
-                  Documents are partitioned into semantically chunked vectors stored in Pinecone per workspace{" "}
-                  <button
-                    type="button"
-                    onClick={() => setActiveId(1)}
-                    onMouseEnter={() => setActiveId(1)}
-                    className={`inline-flex items-center justify-center rounded-xs px-1.5 py-0.5 text-xs font-bold transition-all ${
-                      activeId === 1
-                        ? "bg-[#0075de] text-white"
-                        : "bg-[#2a9d99]/15 text-[#2a9d99] hover:bg-[#2a9d99]/25"
-                    }`}
-                  >
-                    [1]
-                  </button>
-                  .
-                </p>
+              <h4 className="type-title text-xs font-bold text-[#000000] dark:text-white">
+                Studybook Engine
+              </h4>
+              <p className="type-caption mt-0.5 text-[10px] text-[#615d59] dark:text-zinc-400">
+                Chunk • Embed • Synthesize
+              </p>
 
-                <p>
-                  Multi-hop verification dynamically re-ranks retrieved chunks before prompt injection, eliminating up to 82% of ungrounded assertions{" "}
-                  <button
-                    type="button"
-                    onClick={() => setActiveId(2)}
-                    onMouseEnter={() => setActiveId(2)}
-                    className={`inline-flex items-center justify-center rounded-xs px-1.5 py-0.5 text-xs font-bold transition-all ${
-                      activeId === 2
-                        ? "bg-[#0075de] text-white"
-                        : "bg-[#ff64c8]/15 text-[#ff64c8] hover:bg-[#ff64c8]/25"
-                    }`}
-                  >
-                    [2]
-                  </button>
-                  .
-                </p>
-
-                <p>
-                  Conversational rolling summaries preserve long-term episodic context without exceeding token quotas{" "}
-                  <button
-                    type="button"
-                    onClick={() => setActiveId(3)}
-                    onMouseEnter={() => setActiveId(3)}
-                    className={`inline-flex items-center justify-center rounded-xs px-1.5 py-0.5 text-xs font-bold transition-all ${
-                      activeId === 3
-                        ? "bg-[#0075de] text-white"
-                        : "bg-[#62aef0]/20 text-[#0075de] hover:bg-[#62aef0]/30"
-                    }`}
-                  >
-                    [3]
-                  </button>
-                  .
-                </p>
-
-                <p>
-                  Studio artifacts (quizzes, flashcards, mind maps) are queued asynchronously for immediate rendering{" "}
-                  <button
-                    type="button"
-                    onClick={() => setActiveId(4)}
-                    onMouseEnter={() => setActiveId(4)}
-                    className={`inline-flex items-center justify-center rounded-xs px-1.5 py-0.5 text-xs font-bold transition-all ${
-                      activeId === 4
-                        ? "bg-[#0075de] text-white"
-                        : "bg-[#dd5b00]/15 text-[#dd5b00] hover:bg-[#dd5b00]/25"
-                    }`}
-                  >
-                    [4]
-                  </button>
-                  .
-                </p>
-              </div>
-
-              {/* Interactive Source Snippet Tray */}
-              <div className="mt-4 border-t border-[#e6e6e6] pt-3 dark:border-zinc-700">
-                <AnimatePresence mode="wait">
-                  {activeId && (
-                    <motion.div
-                      key={activeId}
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.15 }}
-                      className="rounded-md border border-[#e6e6e6] bg-[#f6f5f4] p-2.5 text-xs text-[#31302e] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
-                    >
-                      <div className="flex items-center justify-between font-semibold text-[#000000] dark:text-zinc-100">
-                        <span className="type-eyebrow flex items-center gap-1.5">
-                          <CheckCircle2 className="size-3 text-[#1aae39]" />
-                          Verified Excerpt [{activeId}]
-                        </span>
-                        <span className="type-caption text-[11px] text-[#615d59]">
-                          {SOURCES[activeId - 1]?.type}
-                        </span>
-                      </div>
-                      <p className="type-caption mt-1 italic leading-relaxed text-[#31302e] dark:text-zinc-300">
-                        "{SOURCES[activeId - 1]?.snippet}"
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              {/* Status Chips */}
+              <div className="mt-2.5 flex items-center gap-1 rounded-md bg-[#f6f5f4] px-2 py-0.5 text-[9px] font-semibold text-[#31302e] dark:bg-zinc-800 dark:text-zinc-300">
+                <Sparkles className="size-2.5 text-[#0075de]" />
+                <span>RAG & Vector Core</span>
               </div>
             </motion.div>
+          </div>
+
+          {/* RIGHT: 4 Clean Output Artifact Cards (5 cols) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:col-span-5">
+            <div className="col-span-full mb-0.5">
+              <span className="type-eyebrow uppercase tracking-widest text-[#a39e98] dark:text-zinc-500">
+                Grounded Output Artifacts
+              </span>
+            </div>
+
+            {/* Artifact 1: Grounded Chat Answer with Citations */}
+            <motion.div
+              whileHover={{ y: -3 }}
+              onMouseEnter={() => setActiveArtifactId("chat")}
+              onMouseLeave={() => setActiveArtifactId(null)}
+              className={`shadow-level-1 relative rounded-xl border p-3 transition-all duration-200 ${
+                activeArtifactId === "chat" || engineHovered
+                  ? "border-[#0075de] bg-white ring-1 ring-[#0075de]/30 dark:bg-zinc-800"
+                  : "border-[#e6e6e6] bg-white hover:border-[#a39e98] dark:border-zinc-800 dark:bg-zinc-900"
+              }`}
+            >
+              <div className="flex items-center justify-between border-b border-[#e6e6e6] pb-2 dark:border-zinc-800">
+                <div className="flex items-center gap-1.5">
+                  <MessageSquareCode className="size-3.5 text-[#0075de]" />
+                  <span className="type-eyebrow font-bold text-[#000000] dark:text-white">
+                    Grounded Chat
+                  </span>
+                </div>
+                <span className="type-caption text-[10px] text-[#1aae39] font-semibold">
+                  Verified
+                </span>
+              </div>
+
+              <div className="mt-2 space-y-1.5">
+                <div className="h-1.5 w-4/5 rounded-full bg-[#e6e6e6] dark:bg-zinc-700" />
+                <p className="type-caption text-[11px] leading-tight text-[#31302e] dark:text-zinc-300">
+                  Cosine similarity bounded across partitioned chunks{" "}
+                  <span className="rounded-xs bg-[#0075de]/15 px-1 py-0.2 font-bold text-[#0075de] text-[10px]">
+                    [1]
+                  </span>{" "}
+                  <span className="rounded-xs bg-[#2a9d99]/15 px-1 py-0.2 font-bold text-[#2a9d99] text-[10px]">
+                    [2]
+                  </span>
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Artifact 2: Interactive Flashcard Stack */}
+            <motion.div
+              whileHover={{ y: -3 }}
+              onMouseEnter={() => setActiveArtifactId("flashcard")}
+              onMouseLeave={() => setActiveArtifactId(null)}
+              className={`shadow-level-1 relative rounded-xl border p-3 transition-all duration-200 ${
+                activeArtifactId === "flashcard" || engineHovered
+                  ? "border-[#ff64c8] bg-white ring-1 ring-[#ff64c8]/30 dark:bg-zinc-800"
+                  : "border-[#e6e6e6] bg-white hover:border-[#a39e98] dark:border-zinc-800 dark:bg-zinc-900"
+              }`}
+            >
+              <div className="flex items-center justify-between border-b border-[#e6e6e6] pb-2 dark:border-zinc-800">
+                <div className="flex items-center gap-1.5">
+                  <BookOpen className="size-3.5 text-[#ff64c8]" />
+                  <span className="type-eyebrow font-bold text-[#000000] dark:text-white">
+                    Flashcards
+                  </span>
+                </div>
+                <span className="type-caption text-[10px] text-[#ff64c8] font-semibold">
+                  12 Cards
+                </span>
+              </div>
+
+              <div className="mt-2 rounded-md bg-[#ff64c8]/5 border border-[#ff64c8]/20 p-2 text-[11px]">
+                <p className="font-semibold text-[#000000] dark:text-white">
+                  Q: Vector index recall?
+                </p>
+                <p className="text-[10px] text-[#615d59] dark:text-zinc-400 mt-0.5">
+                  A: 99.2% accuracy per workspace
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Artifact 3: Practice Quiz */}
+            <motion.div
+              whileHover={{ y: -3 }}
+              onMouseEnter={() => setActiveArtifactId("quiz")}
+              onMouseLeave={() => setActiveArtifactId(null)}
+              className={`shadow-level-1 relative rounded-xl border p-3 transition-all duration-200 ${
+                activeArtifactId === "quiz" || engineHovered
+                  ? "border-[#1aae39] bg-white ring-1 ring-[#1aae39]/30 dark:bg-zinc-800"
+                  : "border-[#e6e6e6] bg-white hover:border-[#a39e98] dark:border-zinc-800 dark:bg-zinc-900"
+              }`}
+            >
+              <div className="flex items-center justify-between border-b border-[#e6e6e6] pb-2 dark:border-zinc-800">
+                <div className="flex items-center gap-1.5">
+                  <HelpCircle className="size-3.5 text-[#1aae39]" />
+                  <span className="type-eyebrow font-bold text-[#000000] dark:text-white">
+                    Practice Quiz
+                  </span>
+                </div>
+                <span className="type-caption text-[10px] text-[#1aae39] font-bold">
+                  +10 XP
+                </span>
+              </div>
+
+              <div className="mt-2 space-y-1 text-[11px]">
+                <div className="flex items-center gap-1.5 rounded-md bg-[#1aae39]/10 px-2 py-1 text-[#1aae39] font-medium">
+                  <CheckCircle2 className="size-3 shrink-0" />
+                  <span className="truncate">Dense Retrieval (Correct)</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Artifact 4: Visual Mind Map */}
+            <motion.div
+              whileHover={{ y: -3 }}
+              onMouseEnter={() => setActiveArtifactId("mindmap")}
+              onMouseLeave={() => setActiveArtifactId(null)}
+              className={`shadow-level-1 relative rounded-xl border p-3 transition-all duration-200 ${
+                activeArtifactId === "mindmap" || engineHovered
+                  ? "border-[#8b5cf6] bg-white ring-1 ring-[#8b5cf6]/30 dark:bg-zinc-800"
+                  : "border-[#e6e6e6] bg-white hover:border-[#a39e98] dark:border-zinc-800 dark:bg-zinc-900"
+              }`}
+            >
+              <div className="flex items-center justify-between border-b border-[#e6e6e6] pb-2 dark:border-zinc-800">
+                <div className="flex items-center gap-1.5">
+                  <Network className="size-3.5 text-[#8b5cf6]" />
+                  <span className="type-eyebrow font-bold text-[#000000] dark:text-white">
+                    Visual Mind Map
+                  </span>
+                </div>
+                <span className="type-caption text-[10px] text-[#8b5cf6]">
+                  Nodes
+                </span>
+              </div>
+
+              <div className="mt-2 flex items-center justify-between text-[10px]">
+                <span className="rounded-xs bg-[#f6f5f4] px-1.5 py-0.5 font-medium text-[#31302e] dark:bg-zinc-800 dark:text-zinc-300">
+                  Sources
+                </span>
+                <span className="text-[#a39e98]">➔</span>
+                <span className="rounded-xs bg-[#0075de]/15 px-1.5 py-0.5 font-bold text-[#0075de]">
+                  Vector
+                </span>
+                <span className="text-[#a39e98]">➔</span>
+                <span className="rounded-xs bg-[#8b5cf6]/15 px-1.5 py-0.5 font-bold text-[#8b5cf6]">
+                  Insights
+                </span>
+              </div>
+            </motion.div>
+
           </div>
 
         </div>
