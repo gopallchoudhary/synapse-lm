@@ -15,6 +15,10 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Studybook LM",
   description: "Your AI-powered research and learning companion",
+  icons: {
+    icon: [{ url: "/brand-logo.svg?v=2", type: "image/svg+xml" }],
+    apple: [{ url: "/brand-logo.svg?v=2", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({

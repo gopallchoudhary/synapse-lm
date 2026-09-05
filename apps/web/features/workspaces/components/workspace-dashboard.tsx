@@ -5,6 +5,7 @@ import { ArrowUpRight, BookOpen, Clock3, LibraryBig, Plus, Search } from "lucide
 import Link from "next/link";
 import { useDeferredValue, useState, type FormEvent } from "react";
 import { Button } from "~/components/ui/button";
+import { BrandLogo } from "~/components/brand-logo";
 import {
   Dialog,
   DialogContent,
@@ -187,9 +188,7 @@ export function WorkspaceDashboard() {
       <header className="border-b border-border/70 bg-background/90 backdrop-blur">
         <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3 font-semibold tracking-tight">
-            <span className="grid size-8 place-items-center rounded-xl bg-foreground text-sm text-background">
-              S
-            </span>
+            <BrandLogo className="size-12 rounded-xl" size={32} />
             <span className="hidden sm:inline">Studybook LM</span>
           </Link>
           <div className="flex items-center gap-3">

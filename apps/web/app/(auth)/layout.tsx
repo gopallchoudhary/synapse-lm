@@ -1,3 +1,5 @@
+import { BrandLogo } from "~/components/brand-logo";
+
 export default function AuthLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -9,9 +11,7 @@ export default function AuthLayout({
           <div className="absolute -bottom-32 -left-20 size-80 rounded-full bg-violet-500/20 blur-3xl" />
 
           <div className="relative flex items-center gap-3 text-lg font-semibold tracking-tight">
-            <span className="grid size-9 place-items-center rounded-xl bg-white text-sm font-black text-zinc-950">
-              S
-            </span>
+            <BrandLogo className="size-9 rounded-xl" size={36} />
             Studybook LM
           </div>
 
